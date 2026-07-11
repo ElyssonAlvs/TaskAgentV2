@@ -4,6 +4,35 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🧹 Resolução do Problema de Cache e Ajustes no Feedback da API - 11/07/2026 17:40
+
+### 🛠️ O que eu Modifiquei
+
+Eu corrigi o problema em que os títulos das tarefas apareciam como `undefined` na interface gráfica e ajustei a mensagem de pensamento quando o agente não executava uma chamada à API.
+
+*   **[main.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/main.py)**:
+    *   **Desativar Cache**: Modifiquei a rota que serve o arquivo `index.html` para retornar a resposta com cabeçalhos HTTP que previnem o cache agressivo do navegador (`Cache-Control: no-cache, no-store, must-revalidate`). Isso resolveu o problema do título "undefined", pois o navegador estava preso em uma versão antiga do JavaScript que não extraía o `title` corretamente.
+    *   **Feedback Condicional**: Modifiquei a lógica que compõe o "pensamento" na interface web. Agora, quando o agente não consegue interpretar a intenção ou a clareza é falsa (necessitando clarificação), ele não exibe "API respondeu com sucesso", mas sim "Aguardando clarificação do usuário".
+*   **[static/index.html](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/static/index.html)**:
+    *   Adicionei a string padrão `'Sem título'` como fallback para tarefas que venham sem título. A renderização agora é validada como `t.title || t.titulo || 'Sem título'`.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Gerenciamento de Cache de Navegador (HTTP Cache-Control)**:
+    *   Entendi que interfaces HTML/JS servidas de forma estática costumam ser cacheadas agressivamente pelo navegador.
+    *   Aprendi que alterações no frontend (`index.html`) podem não surtir efeito imediato se o servidor web (FastAPI) não enviar os headers corretos informando ao navegador para revalidar ou descartar o cache temporário.
+2.  **Validação Condicional em Respostas de API Mistas**:
+    *   Estudei como garantir que os logs e mensagens de *feedback* da interface reflitam a realidade de fluxos encurtados do agente (como no caso do nó `clarificar`), onde interações de pausa não utilizam a API externa.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Realizar uma recarga forçada no navegador (`Ctrl+F5`) com os servidores online e testar se a interface está mapeando perfeitamente as propriedades das tarefas da API.
+
+---
+
 ## 🐛 Correção do Loop de Clarificação na Web (Stateless Request-Response) - 11/07/2026 17:28
 
 ### 🛠️ O que eu Modifiquei

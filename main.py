@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from agent import executar_agente
 
@@ -28,8 +28,10 @@ def chat(request: MensagemRequest):
     if resultado["parametros"]:
         pensamento.append(f" Parâmetros: {resultado['parametros']}")
 
-    if "erro" in resultado["resposta_api"]:
+    if "erro" in resultado.get("resposta_api", {}):
         pensamento.append(f" Erro: {resultado['resposta_api']['erro']}")
+    elif resultado["intencao"] == "desconhecida" or not resultado["clareza"]:
+        pensamento.append(f" Aguardando clarificação do usuário")
     else:
         pensamento.append(f" API respondeu com sucesso")
 
@@ -58,4 +60,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def index():
-    return FileResponse("static/index.html")
+    with open("static/index.html", "r", encoding="utf-8") as f:
+        html = f.read()
+    return HTMLResponse(content=html, headers={
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    })
