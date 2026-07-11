@@ -4,6 +4,33 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 📖 Atualização da Documentação Técnica de Arquitetura — 11/07/2026 18:01
+
+### 🛠️ O que eu Modifiquei
+
+Eu atualizei a documentação técnica da arquitetura para torná-la mais visual, didática e fiel ao estado atual do código.
+
+*   **[docs/arquitetura.md](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/docs/arquitetura.md)**:
+    *   Reescrevi todo o documento em **primeira pessoa do singular** para dar um tom de estudo pessoal.
+    *   Adicionei um diagrama **Mermaid** detalhando a arquitetura geral do ecossistema (Frontend, FastAPI Agent Server na porta 8001, FastAPI TaskManager API na porta 8000 e SQLite).
+    *   Corrigi o diagrama **Mermaid** do ciclo de vida do LangGraph, que agora reflete fielmente o fluxo *stateless* onde a clarificação encerra o ciclo (`clarificar --> END`).
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Representação Gráfica com Mermaid**:
+    *   Aprendi a usar a notação do Mermaid para criar diagramas de arquitetura de ecossistema (`graph TD` com subgrafos) e diagramas de fluxo de grafos de decisão de forma integrada diretamente nos arquivos markdown.
+2.  **Sincronização de Documentação com Código**:
+    *   Compreendi a importância de manter diagramas arquiteturais rigorosamente alinhados às mudanças de infraestrutura e fluxo do sistema (como a alteração da transição do nó `clarificar`), evitando desinformação para futuros desenvolvedores.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Continuar evoluindo o agente com novos testes de interações de tarefas no frontend.
+
+---
+
 ## 🔍 Busca de Tarefas por ID e Ajustes de Tipo no Estado - 11/07/2026 17:58
 
 ### 🛠️ O que eu Modifiquei
