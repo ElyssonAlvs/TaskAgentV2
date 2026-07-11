@@ -22,7 +22,7 @@ def criar_tasks(mensagem: str, historico: str):
 
     task_executar = Task(
         description="""Com base na interpretação anterior, execute a operação
-        correspondente na API REST em http://localhost:8000.
+        correspondente na API REST em http://127.0.0.1:8000
         
         Endpoints disponíveis:
         - GET /tasks/  listar todas

@@ -4,6 +4,70 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🛠️ Equipando Agentes com Tools no CrewAI — 11/07/2026 19:53
+
+### 🛠️ O que eu Modifiquei
+
+Eu equipei o agente executor do CrewAI com ferramentas customizadas que realizam requisições HTTP reais à API do `TaskManager`, garantindo que os dados não sejam alucinados pelas LLMs.
+
+*   **[crew/tools.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/tools.py)**:
+    *   Criei este novo módulo para definir as ferramentas do time utilizando o decorador `@tool` do CrewAI.
+    *   **Listar Tasks**: Envia requisição `GET` para `/v1/tasks/`.
+    *   **Criar Task**: Envia requisição `POST` formatando o campo `title` esperado pelo backend.
+    *   **Deletar Task**: Envia requisição `DELETE` utilizando o ID correspondente.
+    *   **Atualizar Task**: Envia requisição `PUT` para alterar o status/título.
+    *   **Buscar Task por Título**: Retorna IDs correspondentes a buscas de títulos textuais.
+*   **[crew/agents.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/agents.py)**:
+    *   Importei as ferramentas criadas e as associei como recursos ao agente `Executor de Tasks` (`tools=[...]`).
+*   **[test_crew.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/test_crew.py)**:
+    *   Refatorei o script de testes para cobrir sequencialmente múltiplos cenários (listagem, criação e deleção) em lote.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Ferramentas Customizadas como Habilidades (Agent Skills)**:
+    *   Entendi como dar poder de ação prática a agentes de IA. Através de decorações do tipo `@tool`, escrevemos código Python convencional (como chamadas HTTP) cuja finalidade e parâmetros são explicados em *docstrings*.
+    *   O LLM lê essas explicações e decide dinamicamente quando usá-las, coletando as informações do contexto de entrada.
+2.  **Saneamento de Contratos de API**:
+    *   Evitei que os agentes falhassem garantindo que as chamadas usassem a rota correta `/v1/tasks/` do ecossistema e fizessem a tradução do payload do usuário (`titulo` -> `title`).
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Aguardar as ordens do usuário para rodar os testes em lote e analisar a cadeia de pensamentos do CrewAI chamando as ferramentas.
+
+---
+
+## 🛠️ Correção e Configuração dos LLMs no CrewAI - 11/07/2026 19:40
+
+### 🛠️ O que eu Modifiquei
+
+Eu corrigi os erros de validação e execução ao rodar a equipe multiagentes (`test_crew.py`) usando o CrewAI. As alterações realizadas foram:
+
+*   **Instalação de Dependências**: Adicionei a biblioteca `litellm` ao projeto (`uv add litellm`) para suportar a conexão nativa com provedores externos no CrewAI.
+*   **[crew/agents.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/agents.py)**:
+    *   **Migração de LLM**: Removi a dependência do `ChatGroq` do LangChain e adotei a classe nativa `LLM` do CrewAI.
+    *   **Atualização do Modelo**: Substituí o modelo descontinuado `llama3-70b-8192` pelo modelo ativo `llama-3.3-70b-versatile` no Groq.
+    *   **Monkey-Patch de Caching**: Adicionei um patch para desativar a injeção automática de `cache_breakpoint` pelo CrewAI nas mensagens do Groq. Isso evita o erro `BadRequestError: 'messages.0': property 'cache_breakpoint' is unsupported`.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Diferenças de Interface de LLM entre Frameworks**:
+    *   Entendi que a validação de tipos de agentes no CrewAI (versões mais recentes) exige instâncias do tipo nativo `LLM` ou strings, rejeitando instâncias de `ChatGroq` (que herdam de `BaseChatModel` do LangChain).
+    *   Compreendi que o CrewAI utiliza `LiteLLM` internamente para gerenciar conexões de modelo com diferentes provedores usando um esquema unificado de strings (como `groq/nome_do_modelo`).
+2.  **Incompatibilidade de Parâmetros de API (Context Caching)**:
+    *   Notei que parâmetros automáticos injetados por frameworks (como `cache_breakpoint` do Anthropic) podem causar erros fatais ao serem passados para provedores que ainda não os suportam (como Groq). A aplicação de monkey-patches dinâmicos é uma estratégia de contorno útil nesses casos de incompatibilidade de versão.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Testar interações mais complexas e fluxos de tarefas com a equipe CrewAI criada.
+
+---
+
 ## 👥 Início da Integração com CrewAI (Multiagentes) — 11/07/2026 19:28
 
 ### 🛠️ O que eu Modifiquei

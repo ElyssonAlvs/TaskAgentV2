@@ -1,5 +1,6 @@
 from crewai import Agent
 from langchain_groq import ChatGroq
+from crew.tools import listar_tasks, criar_task, deletar_task, atualizar_task, buscar_task_por_titulo
 from dotenv import load_dotenv
 import os
 
@@ -11,7 +12,6 @@ llm = ChatGroq(
     temperature=0
 )
 
-# Agente 1: especialista em entender o que o usuário quer
 interpretador = Agent(
     role="Interpretador de Intenções",
     goal="Entender com precisão o que o usuário quer fazer com suas tasks",
@@ -23,19 +23,18 @@ interpretador = Agent(
     verbose=True
 )
 
-# Agente 2: especialista em executar operações na API
 executor = Agent(
     role="Executor de Tasks",
-    goal="Executar operações na API de tasks com precisão e tratar erros adequadamente",
+    goal="Executar operações reais na API de tasks usando as ferramentas disponíveis",
     backstory="""Você é especialista em integração com APIs REST. Recebe uma intenção
-    clara e parâmetros definidos, executa a operação correta na API e retorna
-    o resultado de forma estruturada. Sempre verifica se os dados necessários
-    estão presentes antes de executar.""",
+    clara e parâmetros definidos, usa as ferramentas disponíveis para executar
+    a operação correta na API e retorna o resultado real. Nunca inventa dados 
+    sempre usa as ferramentas para obter informações reais.""",
     llm=llm,
+    tools=[listar_tasks, criar_task, deletar_task, atualizar_task, buscar_task_por_titulo],
     verbose=True
 )
 
-# Agente 3: especialista em comunicar resultados
 formatador = Agent(
     role="Formatador de Respostas",
     goal="Transformar resultados técnicos em respostas claras e úteis para o usuário",
