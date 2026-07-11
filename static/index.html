@@ -334,7 +334,7 @@
           ${dados.tasks.map(t => `
             <tr>
               <td>${t.id}</td>
-              <td>${t.titulo}</td>
+              <td>${t.title || t.titulo || ''}</td>
               <td><span class="status-badge status-${t.status}">${t.status}</span></td>
             </tr>
           `).join('')}
