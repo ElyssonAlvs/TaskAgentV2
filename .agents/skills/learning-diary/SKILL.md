@@ -1,12 +1,12 @@
 ---
 name: learning-diary
 description: >-
-  Use esta skill para registrar e documentar os aprendizados, progressos, alterações no código e conceitos teóricos de Orquestração de Agentes no diário de aprendizado (LEARNING_DIARY.md) do usuário.
+  Use esta skill para registrar e documentar os aprendizados, progressos, alterações no código e conceitos teóricos de Orquestração de Agentes no diário de aprendizado (docs/LEARNING_DIARY.md) do usuário.
 ---
 
 # Skill de Diário de Aprendizado (Learning Diary)
 
-Esta skill permite documentar as evoluções do projeto, o aprendizado teórico sobre orquestração de agentes de IA, conceitos discutidos e as modificações feitas pelo usuário. Ela deve atualizar cumulativamente o arquivo `LEARNING_DIARY.md` na raiz do projeto.
+Esta skill permite documentar as evoluções do projeto, o aprendizado teórico sobre orquestração de agentes de IA, conceitos discutidos e as modificações feitas pelo usuário. Ela deve atualizar cumulativamente o arquivo `docs/LEARNING_DIARY.md` do projeto.
 
 ## Diretrizes de Execução
 
@@ -16,7 +16,7 @@ Esta skill permite documentar as evoluções do projeto, o aprendizado teórico 
    - Identifique no chat os tópicos que o usuário estudou ou o que ele aprendeu recentemente (por exemplo, com ajuda de outros LLMs como Claude).
 
 2. **Geração do Registro**:
-   - Cada entrada do diário deve ser adicionada **no topo** (logo abaixo do título principal) do arquivo `LEARNING_DIARY.md`, mantendo os registros anteriores abaixo.
+   - Cada entrada do diário deve ser adicionada **no topo** (logo abaixo do título principal) do arquivo `docs/LEARNING_DIARY.md`, mantendo os registros anteriores abaixo.
    - Formate a nova entrada com um título em markdown (nível 2, `## [Título da Entrada] - DD/MM/AAAA HH:MM`) e as seções descritas abaixo.
 
 3. **Estrutura da Entrada e Tom de Voz**:
@@ -27,7 +27,7 @@ Esta skill permite documentar as evoluções do projeto, o aprendizado teórico 
    - **Próximos Passos / Plano de Estudos**: O que está planejado para ser estudado ou implementado a seguir.
 
 4. **Persistência**:
-   - Se o arquivo [LEARNING_DIARY.md](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/LEARNING_DIARY.md) não existir, crie-o com um cabeçalho principal formatado e visualmente elegante:
+   - Se o arquivo [LEARNING_DIARY.md](../../../docs/LEARNING_DIARY.md) não existir, crie-o com um cabeçalho principal formatado e visualmente elegante:
      ```markdown
      # Diário de Aprendizado - TaskAgent V2 (Orquestração de Agentes de IA)
 
