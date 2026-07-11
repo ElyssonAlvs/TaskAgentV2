@@ -97,19 +97,17 @@ Mensagem atual do usuário: {mensagem}"""
     }
 
 
-# Nó 2: pede clarificação ao usuário
+# Nó 2: pede clarificação ao usuário (versão assíncrona Web sem bloqueio de console)
 def pedir_clarificacao(state: TaskAgentState) -> dict:
-    print(f"\n[Clarificação] {state['duvida']}")
+    print(f"\n[Clarificação] Enviando dúvida ao frontend: '{state['duvida']}'")
     
-    resposta = input(f"Agente: {state['duvida']}\nVocê: ")
-    
+    # Adiciona apenas a pergunta do agente no histórico
     historico_atualizado = state["historico"] + [
-        f"agente: {state['duvida']}",
-        f"usuário: {resposta}"
+        f"agente: {state['duvida']}"
     ]
 
     return {
-        "mensagem_usuario": resposta,
+        "resposta_final": state["duvida"],
         "historico": historico_atualizado
     }
 

@@ -28,7 +28,7 @@ def construir_grafo():
         {"executar": "executar", "clarificar": "clarificar"}
     )
 
-    grafo.add_edge("clarificar", "interpretar")  # volta com nova info
+    grafo.add_edge("clarificar", END)  # Retorna a dúvida para o frontend
     grafo.add_edge("executar", "confirmar")
     grafo.add_edge("confirmar", END)
 

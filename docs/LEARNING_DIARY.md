@@ -4,6 +4,33 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🐛 Correção do Loop de Clarificação na Web (Stateless Request-Response) - 11/07/2026 17:28
+
+### 🛠️ O que eu Modifiquei
+
+Eu resolvi o travamento ("loop") na interface web que ocorria quando o agente precisava pedir clarificações ao usuário. As alterações foram:
+
+*   **[graph/nodes.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/graph/nodes.py)**:
+    *   Removi a chamada síncrona `input()` de dentro do nó `pedir_clarificacao`.
+    *   Agora, o nó apenas registra a dúvida do agente no histórico de conversas e a define como a `resposta_final` a ser enviada ao frontend.
+*   **[graph/graph.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/graph/graph.py)**:
+    *   Modifiquei a borda de saída do nó `clarificar`. Ao invés de retornar para `interpretar` internamente em loop contínuo síncrono, a borda agora aponta diretamente para o fim do grafo (`END`). Isso força a finalização imediata da execução e libera a resposta HTTP do FastAPI com a dúvida para o navegador.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Diferenças de Ciclo de Vida: CLI vs API Web**:
+    *   Compreendi que loops interativos de terminal síncronos baseados em `input()` bloqueiam a thread principal do servidor web (bloqueando o loop de eventos do FastAPI).
+    *   Aprendi que o design de interações para web deve ser **stateless (sem estado ativo)**. A clarificação deve terminar a requisição atual devolvendo a dúvida ao frontend. A resposta do usuário virá em uma nova requisição, e o histórico acumulado na sessão servirá como o contexto para o LLM.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Subir os servidores e validar o fluxo completo de criação e clarificação via chat web.
+
+---
+
 ## 🌐 Interface Web para o TaskAgent V2 - 11/07/2026 17:00
 
 ### 🛠️ O que eu Modifiquei
