@@ -4,6 +4,71 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🌐 Interface Web para o TaskAgent V2 - 11/07/2026 17:00
+
+### 🛠️ O que eu Modifiquei
+
+Nesta etapa (Aula 5), eu transformei o meu agente CLI em um serviço web completo com interface gráfica no navegador. As principais alterações foram:
+
+*   **[main.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/main.py)**: Reestruturei completamente o ponto de entrada da aplicação, convertendo-o em um servidor FastAPI que expõe:
+    *   `POST /chat`: Executa o agente e retorna o pensamento do agente, a resposta amigável e as tarefas extraídas.
+    *   `DELETE /chat/historico`: Limpa o histórico de sessões em memória.
+    *   `GET /`: Serve a interface web montada em HTML/CSS estáticos.
+*   **[agent.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/agent.py)**: Criei este módulo para encapsular a lógica de execução do agente, mantendo a construção do grafo LangGraph isolada do servidor web.
+*   **[static/index.html](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/static/index.html)**: Criei uma interface visual moderna e escura (Dark Mode) usando HTML/CSS vanilla (com fonte Inter e transições sutis). A interface exibe:
+    *   Mensagens do usuário e do agente em caixas dedicadas.
+    *   O pensamento estruturado do agente (intenção, parâmetros, status de resposta).
+    *   Tabela formatada com IDs, Títulos e Badges de Status (Done, Pending, In Progress) coloridos quando o agente lista tarefas.
+*   **Gerenciamento de dependências (`pyproject.toml` e `uv.lock`)**: Instalei os pacotes `fastapi`, `uvicorn` e `python-multipart` necessários para rodar e testar o servidor ASGI.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Exposição de Grafos de Estado via HTTP**:
+    *   Compreendi como transformar um ciclo de execução síncrono de console em endpoints RESTful assíncronos. O estado do LangGraph agora é instanciado a cada requisição de chat e alimentado com o histórico persistido em memória no backend.
+2.  **Transparência e UX de Agentes (Cadeia de Pensamento)**:
+    *   Aprendi a separar a resposta final textual do agente da sua "cadeia de raciocínio" (parâmetros extraídos, intenção detectada). Exibir essa camada de raciocínio em uma seção separada da interface web melhora significativamente a experiência do usuário, fornecendo clareza sobre o comportamento interno do LLM.
+3.  **Renderização de Dados Ricos na UI**:
+    *   Estudei como estruturar e renderizar dinamicamente componentes como tabelas de tarefas e badges de status contextuais com base no payload JSON retornado pela API do agente.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Iniciar e testar os servidores da API (TaskManager) e do Agente em paralelo para rodar o chat web integrado.
+
+---
+
+## 🐛 Correção da Integração com a API Externa do TaskManager - 11/07/2026 16:45
+
+### 🛠️ O que eu Modifiquei
+
+Eu corrigi diversos problemas de comunicação entre o agente e a API externa do `TaskManager`, garantindo o correto mapeamento de rotas e formatos de payload sem realizar nenhuma alteração no código da API. As modificações foram:
+
+*   **[graph/nodes.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/graph/nodes.py)**:
+    *   **Correção de Rotas (404)**: Ajustei todos os endpoints para utilizarem o prefixo `/v1/tasks/` (ex: `/v1/tasks/` em vez de `/tasks/`), que é a rota exposta pelo roteador da API FastAPI.
+    *   **Mapeamento de Payload (422/Erros de Validação)**: Mapeei o campo de entrada do estado do agente (`titulo`) para o campo esperado pelo schema do backend (`title`).
+    *   **Mapeamento de Status**: Adicionei um dicionário de tradução e mapeamento para converter termos em português/variantes (como "concluída", "pendente", "em progresso") para as opções válidas do enum de status da API (`done`, `pending`, `in_progress`).
+    *   **Tratamento de Status 204**: Adicionei uma verificação para a rota de remoção (DELETE), que retorna o código HTTP `204 No Content` sem corpo de resposta, evitando que o agente tente decodificar um JSON vazio e cause um erro de parsing.
+    *   **Apresentação dos Resultados**: Corrigi a leitura das chaves no dicionário de resposta (`t.get('title')` em vez de `t['titulo']`) para evitar erros de `KeyError` e exibir o título e o status corretos no terminal.
+    *   **Compatibilidade de Console (Windows)**: Substituí caracteres unicode especiais (`→`, `—`) por caracteres ASCII equivalentes (`->`, `-`) nos logs de `print`, evitando erros de decodificação de console (`UnicodeEncodeError`) no Windows PowerShell.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Divergências de Modelagem (Agent-to-API Contract)**:
+    *   Compreendi que o estado interno do agente de IA (como usar termos em português como `titulo`) frequentemente difere da especificação da API consumida (que usa `title`). Fazer o mapeamento explícito no nó de execução del grafo (`executar_task`) é vital para manter as duas camadas desacopladas.
+2.  **Robusteza com Respostas Sem Conteúdo (HTTP 204)**:
+    *   Entendi a importância de validar o status code da resposta HTTP e a existência de conteúdo antes de invocar métodos como `.json()`, prevenindo exceções de decode em requisições de remoção ou atualizações que retornem corpo vazio.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Continuar testando a integração de novas ações e fluxos complexos de conversação no terminal.
+
+---
+
 ## 🔌 Estruturação do Ecossistema e Integração do TaskManager - 11/07/2026 16:27
 
 ### 🛠️ O que eu Modifiquei

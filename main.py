@@ -1,26 +1,61 @@
-from graph.graph import construir_grafo
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from agent import executar_agente
 
-def main():
-    app = construir_grafo()
+app = FastAPI()
 
-    print("TaskAgent v2 — digite sua mensagem (ctrl+c para sair)\n")
+# Histórico em memória por sessão simples
+historico_sessao: list[str] = []
 
-    while True:
-        mensagem = input("Você: ")
-        
-        estado_inicial = {
-            "mensagem_usuario": mensagem,
-            "historico": [],
-            "intencao": "",
-            "parametros": {},
-            "clareza": False,
-            "duvida": "",
-            "resposta_api": {},
-            "resposta_final": ""
-        }
+class MensagemRequest(BaseModel):
+    mensagem: str
 
-        resultado = app.invoke(estado_inicial)
-        print(f"\nAgente: {resultado['resposta_final']}\n")
+@app.post("/chat")
+def chat(request: MensagemRequest):
+    global historico_sessao
 
-if __name__ == "__main__":
-    main()
+    resultado = executar_agente(request.mensagem, historico_sessao)
+
+    # Atualiza histórico da sessão
+    historico_sessao = resultado["historico"]
+
+    # Formata pensamento do agente para exibir na UI
+    pensamento = []
+    pensamento.append(f" Intenção detectada: {resultado['intencao']}")
+
+    if resultado["parametros"]:
+        pensamento.append(f" Parâmetros: {resultado['parametros']}")
+
+    if "erro" in resultado["resposta_api"]:
+        pensamento.append(f" Erro: {resultado['resposta_api']['erro']}")
+    else:
+        pensamento.append(f" API respondeu com sucesso")
+
+    # Detecta se a resposta é uma lista de tasks
+    resposta_api = resultado["resposta_api"]
+    tasks = None
+    if isinstance(resposta_api, list):
+        tasks = resposta_api
+    elif isinstance(resposta_api, dict) and "tasks" in resposta_api:
+        tasks = resposta_api["tasks"]
+
+    return {
+        "pensamento": pensamento,
+        "resposta": resultado["resposta_final"],
+        "tasks": tasks
+    }
+
+@app.delete("/chat/historico")
+def limpar_historico():
+    global historico_sessao
+    historico_sessao = []
+    return {"status": "histórico limpo"}
+
+# Serve o frontend
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def index():
+    return FileResponse("static/index.html")

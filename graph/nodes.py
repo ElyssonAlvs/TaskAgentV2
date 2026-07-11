@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 import json
 import os
 import re
+import httpx
+
+BASE_URL = "http://127.0.0.1:8000"
 
 load_dotenv()
 
@@ -73,7 +76,7 @@ Mensagem atual do usuário: {mensagem}"""
         # Limpa nulls do dicionário de parâmetros
         parametros = {k: v for k, v in parametros.items() if v is not None}
 
-        print(f"[Interpretar] LLM retornou → intenção: {intencao} | parâmetros: {parametros} | clareza: {clareza}")
+        print(f"[Interpretar] LLM retornou -> intencao: {intencao} | parametros: {parametros} | clareza: {clareza}")
 
     except json.JSONDecodeError as e:
         print(f"[Interpretar] Erro ao parsear JSON do LLM: {e}")
@@ -111,45 +114,120 @@ def pedir_clarificacao(state: TaskAgentState) -> dict:
     }
 
 
-# Nó 3: executa a ação chamando a API (mock por enquanto)
+# Nó 3: executa a ação chamando a API
 def executar_task(state: TaskAgentState) -> dict:
-    print(f"\n[Executar] Intenção: {state['intencao']} | Parâmetros: {state['parametros']}")
-    
-    # --- MOCK: substituirei por chamada real à FastAPI na Aula 4 ---
     intencao = state["intencao"]
     parametros = state["parametros"]
-    
-    if intencao == "criar":
-        resposta_api = {"status": "criada", "task": {"titulo": parametros.get("titulo"), "id": 99}}
-    elif intencao == "listar":
-        resposta_api = {"tasks": [{"id": 1, "titulo": "Estudar LangGraph"}, {"id": 2, "titulo": "Revisar RAG"}]}
-    elif intencao == "deletar":
-        alvo = parametros.get("titulo") or parametros.get("id")
-        resposta_api = {"status": "deletada", "titulo": alvo}
-    else:
-        resposta_api = {"erro": "intenção não reconhecida"}
 
-    return {"resposta_api": resposta_api}
+    print(f"\n[Executar] Intenção: {intencao} | Parâmetros: {parametros}")
+
+    try:
+        if intencao == "criar":
+            resposta = httpx.post(
+                f"{BASE_URL}/v1/tasks/",
+                json={"title": parametros.get("titulo")}
+            )
+
+        elif intencao == "listar":
+            resposta = httpx.get(f"{BASE_URL}/v1/tasks/")
+
+        elif intencao == "deletar":
+            task_id = parametros.get("id")
+
+            # Se veio título em vez de ID, busca o ID primeiro
+            if not task_id and parametros.get("titulo"):
+                busca = httpx.get(f"{BASE_URL}/v1/tasks/")
+                tasks = busca.json()
+                titulo_alvo = parametros["titulo"].lower()
+                match = next(
+                    (t for t in tasks if titulo_alvo in t.get("title", "").lower()),
+                    None
+                )
+                if match:
+                    task_id = match["id"]
+                else:
+                    return {"resposta_api": {"erro": f"Nenhuma task encontrada com título '{parametros['titulo']}'"}}
+
+            resposta = httpx.delete(f"{BASE_URL}/v1/tasks/{task_id}")
+
+        elif intencao == "atualizar":
+            task_id = parametros.get("id")
+            
+            # Mapeia português/variantes de status para os valores válidos do enum do backend: pending, done, in_progress
+            status_map = {
+                "concluida": "done",
+                "concluída": "done",
+                "done": "done",
+                "pendente": "pending",
+                "pending": "pending",
+                "em progresso": "in_progress",
+                "in_progress": "in_progress",
+                "em_progresso": "in_progress"
+            }
+            
+            payload = {}
+            if "titulo" in parametros and parametros["titulo"] is not None:
+                payload["title"] = parametros["titulo"]
+            if "status" in parametros and parametros["status"] is not None:
+                status_original = parametros["status"].lower().strip()
+                payload["status"] = status_map.get(status_original, status_original)
+
+            resposta = httpx.put(
+                f"{BASE_URL}/v1/tasks/{task_id}",
+                json=payload
+            )
+
+        else:
+            return {"resposta_api": {"erro": "intenção não reconhecida"}}
+
+        resposta.raise_for_status()
+        
+        # 204 No Content não possui corpo JSON para decodificar
+        if resposta.status_code == 204 or not resposta.content:
+            return {"resposta_api": {"status": "sucesso"}}
+            
+        return {"resposta_api": resposta.json()}
+
+    except httpx.HTTPStatusError as e:
+        print(f"[Executar] Erro HTTP: {e.response.status_code}")
+        return {"resposta_api": {"erro": f"Erro da API: {e.response.status_code}"}}
+
+    except httpx.ConnectError:
+        print("[Executar] API não está rodando")
+        return {"resposta_api": {"erro": "Não consegui conectar à API. Ela está rodando?"}}
 
 
 # Nó 4: formata a resposta final para o usuário
 def confirmar_resultado(state: TaskAgentState) -> dict:
     intencao = state["intencao"]
     resposta_api = state["resposta_api"]
-    
-    if intencao == "criar":
-        msg = f"Task '{resposta_api['task']['titulo']}' criada com ID {resposta_api['task']['id']}."
+
+    if "erro" in resposta_api:
+        msg = f"Erro: {resposta_api['erro']}"
+
+    elif intencao == "criar":
+        msg = f"Task '{resposta_api.get('title')}' criada com ID {resposta_api.get('id')}."
+
     elif intencao == "listar":
-        tasks = resposta_api.get("tasks", [])
-        lista = "\n".join([f"  [{t['id']}] {t['titulo']}" for t in tasks])
-        msg = f"Tasks encontradas:\n{lista}"
+        # API pode retornar lista direta ou dict com chave "tasks"
+        tasks = resposta_api if isinstance(resposta_api, list) else resposta_api.get("tasks", [])
+        if not tasks:
+            msg = "Nenhuma task encontrada."
+        else:
+            lista = "\n".join([f"  [{t['id']}] {t.get('title')} - {t.get('status', 'sem status')}" for t in tasks])
+            msg = f"Tasks encontradas:\n{lista}"
+
     elif intencao == "deletar":
-        msg = f"Task '{resposta_api.get('titulo')}' deletada com sucesso."
+        msg = f"Task deletada com sucesso."
+
+    elif intencao == "atualizar":
+        msg = f"Task '{resposta_api.get('title')}' atualizada com sucesso."
+
     else:
-        msg = f"Não consegui processar: {resposta_api.get('erro')}"
+        msg = "Ação concluída."
 
     print(f"\n[Resultado] {msg}")
-    
+
     historico_atualizado = state["historico"] + [f"agente: {msg}"]
 
     return {
