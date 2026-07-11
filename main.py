@@ -28,18 +28,21 @@ def chat(request: MensagemRequest):
     if resultado["parametros"]:
         pensamento.append(f" Parâmetros: {resultado['parametros']}")
 
-    if "erro" in resultado.get("resposta_api", {}):
+    if isinstance(resultado.get("resposta_api"), dict) and "erro" in resultado["resposta_api"]:
         pensamento.append(f" Erro: {resultado['resposta_api']['erro']}")
     elif resultado["intencao"] == "desconhecida" or not resultado["clareza"]:
         pensamento.append(f" Aguardando clarificação do usuário")
     else:
         pensamento.append(f" API respondeu com sucesso")
 
-    # Detecta se a resposta é uma lista de tasks
+    # Detecta se a resposta é uma lista de tasks ou task única
     resposta_api = resultado["resposta_api"]
     tasks = None
     if isinstance(resposta_api, list):
         tasks = resposta_api
+    elif isinstance(resposta_api, dict) and "title" in resposta_api:
+        # Tarefa única buscada por ID — envolve em lista para o frontend renderizar na tabela
+        tasks = [resposta_api]
     elif isinstance(resposta_api, dict) and "tasks" in resposta_api:
         tasks = resposta_api["tasks"]
 

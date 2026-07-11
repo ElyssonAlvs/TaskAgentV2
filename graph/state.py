@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Any
 
 class TaskAgentState(TypedDict):
     mensagem_usuario: str
@@ -7,5 +7,5 @@ class TaskAgentState(TypedDict):
     parametros: dict
     clareza: bool
     duvida: str
-    resposta_api: dict
+    resposta_api: Any
     resposta_final: str

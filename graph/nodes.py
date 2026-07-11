@@ -127,7 +127,12 @@ def executar_task(state: TaskAgentState) -> dict:
             )
 
         elif intencao == "listar":
-            resposta = httpx.get(f"{BASE_URL}/v1/tasks/")
+            task_id = parametros.get("id")
+            if task_id:
+                # Busca tarefa específica por ID
+                resposta = httpx.get(f"{BASE_URL}/v1/tasks/{task_id}")
+            else:
+                resposta = httpx.get(f"{BASE_URL}/v1/tasks/")
 
         elif intencao == "deletar":
             task_id = parametros.get("id")
@@ -207,13 +212,18 @@ def confirmar_resultado(state: TaskAgentState) -> dict:
         msg = f"Task '{resposta_api.get('title')}' criada com ID {resposta_api.get('id')}."
 
     elif intencao == "listar":
-        # API pode retornar lista direta ou dict com chave "tasks"
-        tasks = resposta_api if isinstance(resposta_api, list) else resposta_api.get("tasks", [])
-        if not tasks:
-            msg = "Nenhuma task encontrada."
+        # Resposta pode ser: lista completa, ou dict de task única (busca por ID)
+        if isinstance(resposta_api, dict) and "title" in resposta_api:
+            # Tarefa única buscada por ID
+            t = resposta_api
+            msg = f"Tarefa encontrada:\n  [{t['id']}] {t.get('title')} - {t.get('status', 'sem status')}"
         else:
-            lista = "\n".join([f"  [{t['id']}] {t.get('title')} - {t.get('status', 'sem status')}" for t in tasks])
-            msg = f"Tasks encontradas:\n{lista}"
+            tasks = resposta_api if isinstance(resposta_api, list) else resposta_api.get("tasks", [])
+            if not tasks:
+                msg = "Nenhuma task encontrada."
+            else:
+                lista = "\n".join([f"  [{t['id']}] {t.get('title')} - {t.get('status', 'sem status')}" for t in tasks])
+                msg = f"Tasks encontradas:\n{lista}"
 
     elif intencao == "deletar":
         msg = f"Task deletada com sucesso."

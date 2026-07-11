@@ -4,6 +4,40 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🔍 Busca de Tarefas por ID e Ajustes de Tipo no Estado - 11/07/2026 17:58
+
+### 🛠️ O que eu Modifiquei
+
+Eu adicionei suporte para buscar tarefas específicas pelo ID (tanto no backend quanto no mapeamento do frontend) e tornei a tipagem do estado mais flexível para lidar com as diferentes estruturas de resposta da API.
+
+*   **[graph/nodes.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/graph/nodes.py)**:
+    *   **Consulta por ID**: No nó `executar_task`, implementei a lógica para que, se o usuário solicitar a listagem informando um ID, o agente realize a chamada ao endpoint `/v1/tasks/{task_id}` em vez de trazer todas as tarefas.
+    *   **Exibição de Tarefa Única**: No nó `confirmar_resultado`, adicionei a validação para que, se `resposta_api` for um dicionário contendo a chave `title`, a mensagem final seja formatada como uma única tarefa encontrada.
+*   **[graph/state.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/graph/state.py)**:
+    *   **Tipagem Flexível (`Any`)**: Alterei o tipo de `resposta_api` no `TaskAgentState` de `dict` para `Any` para refletir de maneira precisa que ela pode receber tanto listas (`list`) de tarefas quanto objetos individuais (`dict`).
+*   **[main.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/main.py)**:
+    *   **Tratamento de Erros mais Seguro**: Ajustei a validação de erros na resposta da API para verificar se `resposta_api` é um dicionário antes de fazer a busca pela chave `"erro"`.
+    *   **Envelopamento para Renderização**: Na rota `/chat`, se a API retornar uma tarefa única (dicionário contendo `title`), eu a envelopo em uma lista (`tasks = [resposta_api]`). Isso permite que a tabela do frontend renderize a tarefa com a mesma estrutura padrão sem precisar de código extra.
+*   **[agent.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/agent.py)**:
+    *   Passei a retornar também os campos `clareza` e `duvida` na resposta da função `executar_agente`.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Polimorfismo de Resposta de API na Orquestração**:
+    *   Entendi como tratar de forma elegante e flexível fluxos cujas respostas de API mudam de formato (de uma lista de objetos para um objeto único) dependendo dos parâmetros de entrada (`id`).
+    *   Compreendi a importância de "envelopar" dados no backend para simplificar o consumo no frontend. Ao transformar o objeto único de tarefa em uma lista de um único elemento (`[task]`), o componente de tabela no JS continua funcionando perfeitamente sem alteração de contrato.
+2.  **Segurança de Tipagem em Python com `Any`**:
+    *   Assimilei que, embora o LangGraph não restrinja os tipos em runtime, utilizar tipagens coerentes no `TypedDict` (como `Any` para dados polimórficos) ajuda no autocompletar e na clareza do código para manutenção.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Subir os servidores e testar a busca por ID digitando mensagens como "quais os detalhes da tarefa 5?" ou "me mostre a task 2".
+
+---
+
 ## 🧹 Resolução do Problema de Cache e Ajustes no Feedback da API - 11/07/2026 17:40
 
 ### 🛠️ O que eu Modifiquei

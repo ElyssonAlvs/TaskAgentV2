@@ -19,6 +19,8 @@ def executar_agente(mensagem: str, historico: list[str]) -> dict:
     return {
         "intencao": resultado["intencao"],
         "parametros": resultado["parametros"],
+        "clareza": resultado["clareza"],
+        "duvida": resultado["duvida"],
         "resposta_api": resultado["resposta_api"],
         "resposta_final": resultado["resposta_final"],
         "historico": resultado["historico"]
