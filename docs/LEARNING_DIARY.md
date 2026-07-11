@@ -4,6 +4,42 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 👥 Início da Integração com CrewAI (Multiagentes) — 11/07/2026 19:28
+
+### 🛠️ O que eu Modifiquei
+
+Eu iniciei a transição/estudo da orquestração de tarefas utilizando o framework **CrewAI** em paralelo com o LangGraph.
+
+*   **Configuração de Ambiente**:
+    *   Instalei o framework `crewai` no projeto via `uv add crewai`.
+*   **Estrutura de Diretórios**:
+    *   Criei a pasta `crew/` contendo:
+        *   `crew/__init__.py`: Inicialização do módulo.
+        *   `crew/agents.py`: Definição de três agentes especializados (`interpretador`, `executor`, `formatador`) usando o LLM `llama3-70b-8192` via Groq.
+        *   `crew/tasks.py`: Definição das tarefas sequenciais do time (`task_interpretar`, `task_executar`, `task_formatar`).
+        *   `crew/crew.py`: Montagem do time (`Crew`) com fluxo sequencial (`Process.sequential`).
+*   **Script de Teste**:
+    *   Criei o arquivo `test_crew.py` na raiz para testar a execução sequencial isoladamente no console antes da integração com a interface web.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Orquestração de Múltiplos Agentes**:
+    *   Compreendi os conceitos centrais do **CrewAI**:
+        *   **Agent**: Entidade dotada de papel (`role`), objetivo (`goal`) e histórico de fundo (`backstory`) que molda a sua personalidade e direcionamento.
+        *   **Task**: Uma instrução concreta com descrição e o formato de saída esperado (`expected_output`), associada a um agente específico.
+        *   **Crew**: O contêiner de execução que orquestra a colaboração entre agentes e tarefas através de processos (sequencial ou hierárquico).
+2.  **Diferenças entre Frameworks (LangGraph vs CrewAI)**:
+    *   Assimilei que, enquanto o LangGraph nos dá controle fino e imperativo sobre o fluxo usando lógica de grafos de decisão, o CrewAI fornece uma abstração declarativa baseada na personalidade de múltiplos agentes cooperando entre si.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Aguardar orientações para a execução de `test_crew.py` e ver o *verbose* dos agentes cooperando antes de ligá-los ao frontend web.
+
+---
+
 ## 📖 Atualização da Documentação Técnica de Arquitetura — 11/07/2026 18:01
 
 ### 🛠️ O que eu Modifiquei
