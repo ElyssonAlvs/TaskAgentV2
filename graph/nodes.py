@@ -1,68 +1,87 @@
 from graph.state import TaskAgentState
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
+import json
+import os
 import re
 
-# Nó 1: interpreta a intenção do usuário
+load_dotenv()
+
+# Inicializa o LLM uma vez — fora das funções para não recriar a cada chamada
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    api_key=os.getenv("GROQ_API_KEY"),
+    temperature=0
+)
+
+SYSTEM_PROMPT = """Você é um interpretador de intenções para um gerenciador de tasks.
+
+Analise a mensagem do usuário e o histórico da conversa, e retorne APENAS um JSON válido com esta estrutura:
+
+{
+  "intencao": "criar" | "listar" | "atualizar" | "deletar" | "desconhecida",
+  "parametros": {
+    "id": <número ou null>,
+    "titulo": "<string ou null>",
+    "status": "<string ou null>"
+  },
+  "clareza": true | false,
+  "duvida": "<pergunta para o usuário caso clareza seja false, senão string vazia>"
+}
+
+Regras:
+- Se a mensagem for uma resposta a uma clarificação anterior, use o histórico para inferir a intenção
+- clareza é false quando falta informação essencial para executar a ação
+- Para criar: precisa de título
+- Para deletar/atualizar: precisa de id ou título
+- Para listar: sempre clareza true
+- Retorne SOMENTE o JSON, sem texto adicional, sem markdown, sem explicações, em pt-br"""
+
+
 def interpretar_intencao(state: TaskAgentState) -> dict:
     mensagem = state["mensagem_usuario"]
     historico = state["historico"]
-    
+
     print(f"\n[Interpretar] Mensagem: '{mensagem}'")
-    
-    # --- MOCK: substituirei por LLM na Aula 3 ---
-    # Preserva a intenção que já estava no estado, se houver
-    intencao = state.get("intencao", "desconhecida")
-    if not intencao:
-        intencao = "desconhecida"
-        
-    parametros = state.get("parametros", {})
-    if not parametros:
-        parametros = {}
-        
-    clareza = False
-    duvida = ""
 
-    msg_lower = mensagem.lower()
+    # Monta o contexto com histórico para o LLM entender respostas de clarificação
+    historico_formatado = "\n".join(historico) if historico else "Nenhum histórico ainda."
 
-    # Verifica se há uma nova intenção clara na mensagem
-    if "cria" in msg_lower or "adiciona" in msg_lower:
-        intencao = "criar"
-    elif "lista" in msg_lower or "mostra" in msg_lower:
-        intencao = "listar"
-    elif "deleta" in msg_lower or "remove" in msg_lower:
-        intencao = "deletar"
+    prompt = f"""Histórico da conversa:
+{historico_formatado}
 
-    if intencao == "criar":
-        if "título" in msg_lower or "titulo" in msg_lower:
-            titulo = mensagem.split("título")[-1].strip() if "título" in msg_lower else mensagem.split("titulo")[-1].strip()
-            parametros = {"titulo": titulo}
-            clareza = True
-        elif state.get("intencao") == "criar":
-            # Se for resposta à clarificação, assume que a mensagem inteira é o título
-            parametros = {"titulo": mensagem.strip()}
-            clareza = True
-        else:
-            duvida = "Qual o título da task que você quer criar?"
+Mensagem atual do usuário: {mensagem}"""
 
-    elif intencao == "listar":
-        clareza = True
+    try:
+        resposta = llm.invoke([
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt}
+        ])
 
-    elif intencao == "deletar":
-        match_id = re.search(r'\d+', mensagem)
-        
-        if "título" in msg_lower or "titulo" in msg_lower:
-            titulo = mensagem.split("título")[-1].strip() if "título" in msg_lower else mensagem.split("titulo")[-1].strip()
-            parametros = {"titulo": titulo}
-            clareza = True
-        elif match_id:
-            # Extração de parâmetros aceita ID numérico
-            parametros = {"id": int(match_id.group())}
-            clareza = True
-        elif state.get("intencao") == "deletar":
-            # Se não tem ID mas tem intenção de deletar na clarificação, assume como título
-            parametros = {"titulo": mensagem.strip()}
-            clareza = True
-        else:
-            duvida = "Qual task você quer deletar? Me diz o título ou ID."
+        conteudo = resposta.content.strip()
+
+        # Remove markdown caso o LLM insista em retornar ```json
+        conteudo = re.sub(r"```json|```", "", conteudo).strip()
+
+        dados = json.loads(conteudo)
+
+        intencao = dados.get("intencao", "desconhecida")
+        parametros = dados.get("parametros", {})
+        clareza = dados.get("clareza", False)
+        duvida = dados.get("duvida", "")
+
+        # Limpa nulls do dicionário de parâmetros
+        parametros = {k: v for k, v in parametros.items() if v is not None}
+
+        print(f"[Interpretar] LLM retornou → intenção: {intencao} | parâmetros: {parametros} | clareza: {clareza}")
+
+    except json.JSONDecodeError as e:
+        print(f"[Interpretar] Erro ao parsear JSON do LLM: {e}")
+        print(f"[Interpretar] Resposta bruta: {conteudo}")
+        intencao = state.get("intencao", "desconhecida")
+        parametros = state.get("parametros", {})
+        clareza = False
+        duvida = "Não entendi bem. Pode repetir de outra forma?"
 
     historico_atualizado = historico + [f"usuário: {mensagem}"]
 

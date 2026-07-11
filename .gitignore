@@ -58,6 +58,8 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*.db
+tasks.db
 
 # Sphinx documentation
 docs/_build/
@@ -136,3 +138,6 @@ cython_debug/
 # IDEs
 .vscode/
 .idea/
+
+# External APIs and subprojects
+TaskManager/
