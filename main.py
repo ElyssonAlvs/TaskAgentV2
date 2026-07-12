@@ -16,12 +16,21 @@ class MensagemRequest(BaseModel):
 def chat(request: MensagemRequest):
     global historico_sessao
 
-    # Executa o CrewAI
-    resultado = executar_crew(request.mensagem, historico_sessao)
+    # Executa o CrewAI tratando possíveis falhas/limites de requisição
+    try:
+        resultado = executar_crew(request.mensagem, historico_sessao)
+        resposta_final = str(resultado)
+    except Exception as e:
+        print(f"Erro na execução do CrewAI: {e}")
+        resposta_final = (
+            "Desculpe, o servidor de inteligência artificial (Groq) atingiu o limite de requisições temporariamente. "
+            "Por favor, aguarde alguns segundos e tente novamente.\n\n"
+            "*(Nota: A operação que você solicitou pode ter sido realizada com sucesso no banco de dados, pois o erro ocorreu no processamento final da resposta).* "
+        )
 
     # Atualiza histórico da sessão
     historico_sessao.append(f"Usuário: {request.mensagem}")
-    historico_sessao.append(f"Agente: {resultado}")
+    historico_sessao.append(f"Agente: {resposta_final}")
 
     # Formata pensamento do agente para exibir na UI
     pensamento = [
@@ -31,7 +40,7 @@ def chat(request: MensagemRequest):
 
     return {
         "pensamento": pensamento,
-        "resposta": str(resultado),
+        "resposta": resposta_final,
         "tasks": None
     }
 

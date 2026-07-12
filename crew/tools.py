@@ -13,7 +13,12 @@ def listar_tasks(query: str) -> str:
         tasks = resposta.json()
         if not tasks:
             return "Nenhuma task encontrada."
-        return str(tasks)
+        # Filtra chaves irrelevantes para economizar tokens na LLM
+        tasks_simplificadas = [
+            {"id": t.get("id"), "title": t.get("title"), "status": t.get("status")}
+            for t in tasks
+        ]
+        return str(tasks_simplificadas)
     except httpx.ConnectError:
         return "Erro: API não está rodando em localhost:8000"
     except Exception as e:
@@ -91,6 +96,11 @@ def buscar_task_por_titulo(titulo: str) -> str:
         matches = [t for t in tasks if titulo_lower in t.get("title", "").lower()]
         if not matches:
             return f"Nenhuma task encontrada com título contendo '{titulo}'."
-        return str(matches)
+        # Filtra chaves irrelevantes para economizar tokens
+        matches_simplificados = [
+            {"id": t.get("id"), "title": t.get("title"), "status": t.get("status")}
+            for t in matches
+        ]
+        return str(matches_simplificados)
     except httpx.ConnectError:
         return "Erro: API não está rodando em localhost:8000"

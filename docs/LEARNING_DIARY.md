@@ -4,6 +4,35 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🛡️ Resiliência contra Limites de Requisição (Groq Rate Limits) — 12/07/2026 18:28
+
+### 🛠️ O que eu Modifiquei
+
+Eu implementei mecanismos de resiliência e otimização de tokens para lidar com as severas limitações de TPM (Tokens Per Minute) da API gratuita do Groq quando orquestrada via CrewAI.
+
+*   **[crew/tools.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/tools.py)**:
+    *   **Otimização de Payload (Token Saving)**: Modifiquei as ferramentas `listar_tasks` e `buscar_task_por_titulo` para remover campos desnecessários (como `description` e outras chaves longas) antes de retornar os dados à LLM. Retornar apenas `id`, `title` e `status` poupou milhares de tokens do contexto, reduzindo drasticamente a chance de estouro de limite.
+*   **[crew/agents.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/agents.py)**:
+    *   Adicionei o parâmetro `num_retries=5` à inicialização da classe `LLM` do CrewAI. Isso instrui o LiteLLM a realizar automaticamente tentativas com recuo exponencial (*backoff*) caso receba um código HTTP 429 de Rate Limit.
+*   **[main.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/main.py)**:
+    *   **Tratamento de Exceções no Chat**: Envolvi a execução do CrewAI (`executar_crew`) em um bloco `try-except` para capturar falhas. Se a requisição ao Groq estourar o limite mesmo com retentativas, o backend agora retorna uma mensagem clara sugerindo que o usuário tente novamente em instantes e informando que a ação de modificação pode ter tido sucesso na API. Isso previne quebras com status HTTP 500 e alertas genéricos de conexão no navegador.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Redução Preventiva de Janela de Contexto**:
+    *   Compreendi que orquestradores de múltiplos agentes carregam muita informação em cada chamada (instruções de papéis, ferramentas e histórico). Sendo assim, qualquer dado retornado pelas ferramentas (como respostas de bancos de dados ou APIs) deve ser o mais conciso e filtrado possível para evitar estouro da cota de TPM da API do LLM.
+2.  **Mecanismos de Retentativa com Backoff Exponencial**:
+    *   Estudei como delegar para o LiteLLM a tratativa do status 429 (Rate Limit Reached), permitindo que ele silenciosamente aguarde alguns segundos antes de reenviar a requisição à IA, melhorando a experiência do usuário final.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Monitorear o uso de tokens da API do Groq nos próximos testes e validar se os retries resolvem as instabilidades.
+
+---
+
 ## 🎨 Renderização Premium de Tabelas Markdown no Frontend - 12/07/2026 18:05
 
 ### 🛠️ O que eu Modifiquei
