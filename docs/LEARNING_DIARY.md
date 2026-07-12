@@ -16,6 +16,7 @@ Eu melhorei a visualização das tarefas retornadas pelo CrewAI. Antes elas apar
     *   Importei a biblioteca oficial `marked.js` para realizar a conversão completa e confiável de Markdown para HTML no cliente.
     *   Refatorei os seletores CSS das tabelas (antes `.tabela-tasks`) para `.resposta table`, garantindo que as tabelas renderizadas via Markdown herdem o mesmo design premium (cores, bordas e *hover states*) planejado anteriormente.
     *   **Post-Processing do DOM**: Adicionei um loop simples para verificar o texto das células geradas dinamicamente (ex: "done", "pending") e as envolvi novamente com as classes de badge (`<span class="status-badge status-done">`), recuperando o aspecto de UI rica e nativa.
+    *   **Ajustes de UI/UX**: Centralizei a coluna de Status, reduzi sua largura total para 100px, e deixei os badges mais compactos (fonte 8.5px, padding reduzido, e um dot indicator menor) para otimizar o espaço visual da tabela.
 
 ---
 
