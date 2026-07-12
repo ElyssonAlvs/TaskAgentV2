@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
-from agent import executar_agente
+from crew.crew import executar_crew
 
 app = FastAPI()
 
@@ -16,40 +16,23 @@ class MensagemRequest(BaseModel):
 def chat(request: MensagemRequest):
     global historico_sessao
 
-    resultado = executar_agente(request.mensagem, historico_sessao)
+    # Executa o CrewAI
+    resultado = executar_crew(request.mensagem, historico_sessao)
 
     # Atualiza histórico da sessão
-    historico_sessao = resultado["historico"]
+    historico_sessao.append(f"Usuário: {request.mensagem}")
+    historico_sessao.append(f"Agente: {resultado}")
 
     # Formata pensamento do agente para exibir na UI
-    pensamento = []
-    pensamento.append(f" Intenção detectada: {resultado['intencao']}")
-
-    if resultado["parametros"]:
-        pensamento.append(f" Parâmetros: {resultado['parametros']}")
-
-    if isinstance(resultado.get("resposta_api"), dict) and "erro" in resultado["resposta_api"]:
-        pensamento.append(f" Erro: {resultado['resposta_api']['erro']}")
-    elif resultado["intencao"] == "desconhecida" or not resultado["clareza"]:
-        pensamento.append(f" Aguardando clarificação do usuário")
-    else:
-        pensamento.append(f" API respondeu com sucesso")
-
-    # Detecta se a resposta é uma lista de tasks ou task única
-    resposta_api = resultado["resposta_api"]
-    tasks = None
-    if isinstance(resposta_api, list):
-        tasks = resposta_api
-    elif isinstance(resposta_api, dict) and "title" in resposta_api:
-        # Tarefa única buscada por ID — envolve em lista para o frontend renderizar na tabela
-        tasks = [resposta_api]
-    elif isinstance(resposta_api, dict) and "tasks" in resposta_api:
-        tasks = resposta_api["tasks"]
+    pensamento = [
+        "🤖 Processado por: CrewAI (Multi-Agentes)", 
+        "👥 Papéis envolvidos: Interpretador, Executor, Formatador"
+    ]
 
     return {
         "pensamento": pensamento,
-        "resposta": resultado["resposta_final"],
-        "tasks": tasks
+        "resposta": str(resultado),
+        "tasks": None
     }
 
 @app.delete("/chat/historico")

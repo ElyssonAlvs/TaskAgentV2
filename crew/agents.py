@@ -1,13 +1,19 @@
-from crewai import Agent
-from langchain_groq import ChatGroq
+# Desativa a injeção do cache_breakpoint (não suportado pelo Groq)
+try:
+    import crewai.llms.cache as _crewai_cache
+    _crewai_cache.mark_cache_breakpoint = lambda msg: msg
+except ImportError:
+    pass
+
+from crewai import Agent, LLM
 from crew.tools import listar_tasks, criar_task, deletar_task, atualizar_task, buscar_task_por_titulo
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-llm = ChatGroq(
-    model="llama3-70b-8192",
+llm = LLM(
+    model="groq/llama-3.3-70b-versatile",
     api_key=os.getenv("GROQ_API_KEY"),
     temperature=0
 )

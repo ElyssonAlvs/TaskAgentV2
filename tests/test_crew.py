@@ -3,7 +3,7 @@ from crew.crew import executar_crew
 cenarios = [
     "mostra todas as tasks",
     "cria uma task com título Testar CrewAI",
-    "deleta a task de número 1"
+    "deleta a task de número 8"
 ]
 
 for mensagem in cenarios:

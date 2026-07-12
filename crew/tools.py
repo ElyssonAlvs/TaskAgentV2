@@ -1,7 +1,7 @@
 from crewai.tools import tool
 import httpx
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://127.0.0.1:8000"
 
 @tool("Listar Tasks")
 def listar_tasks(query: str) -> str:

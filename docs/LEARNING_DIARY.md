@@ -4,6 +4,64 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🎨 Integração do CrewAI no Frontend e Documentação Completa — 11/07/2026 20:29
+
+### 🛠️ O que eu Modifiquei
+
+Eu finalizei a conexão do time CrewAI à interface web do usuário e estruturei toda a documentação pública (README) do projeto de forma didática.
+
+*   **[main.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/main.py)**:
+    *   Substituí a lógica antiga baseada em `executar_agente` (LangGraph) para invocar `executar_crew`.
+    *   Ajustei o payload de resposta esperado pela UI: substituí o envio do array de `tasks` (que era renderizado numa tabela HTML) apenas pela resposta em formato textual rico formatada pelo agente Formatador do CrewAI.
+    *   Alteri as mensagens estáticas de "Pensamento" no frontend para refletir a nova cadeia multiagente, indicando a atuação do Interpretador, Executor e Formatador de forma unificada.
+*   **[README.md](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/README.md)**:
+    *   Reescrevi completamente o README para servir como "cartão de visitas" da aplicação. Adicionei seções fundamentais exigidas em padrões de mercado (O que é o projeto, Tecnologias Usadas, Como Rodar Localmente em dois terminais paralelos).
+    *   Incluí um diagrama **Mermaid** macro mostrando as camadas (Cliente -> FastAPI -> CrewAI -> Backend API).
+*   **Organização de Arquivos**:
+    *   Movi o script `test_crew.py` solto na raiz para dentro de uma nova pasta `tests/` (`tests/test_crew.py`), mantendo a raiz limpa e um aspecto profissional de projeto bem estruturado.
+    *   Criei o arquivo de exemplo `[`.env.example`](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/.env.example) para expor as variáveis de ambiente necessárias (como a `GROQ_API_KEY`) sem vazar credenciais ativas, após confirmar o isolamento via `.gitignore`.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Refatoração e Adaptação de Interfaces (Contracts)**:
+    *   Entendi como é vital adaptar a rota de comunicação (endpoints FastAPI) e as respostas da interface quando há uma mudança massiva no núcleo de orquestração (de LangGraph puro para CrewAI), lidando com as diferentes formas em que cada framework emite *outputs* finais.
+2.  **Boas Práticas de Repositórios Open Source e Portfólio**:
+    *   Pratiquei a padronização e documentação de projetos. A presença de um arquivo de exemplo `.env.example`, organização correta de testes fora da raiz principal, e um README completo com diagramas reduzem a fricção no *onboarding* de desenvolvedores e validam o aspecto de "projeto finalizado" e maduro.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Deixar os servidores ativos (TaskManager e TaskAgentV2) nas portas 8000 e 8001 e realizar testes robustos através da interface visual final!
+
+---
+
+## 🤖 Resolução do ValidationError e Configuração da LLM Groq no CrewAI - 11/07/2026 20:02
+
+### 🛠️ O que eu Modifiquei
+
+Eu corrigi o erro de validação do Pydantic (`ValidationError`) que ocorria ao tentar rodar o script de equipe de agentes (`test_crew.py`), mantendo o uso do modelo selecionado pelo usuário (`llama-3.3-70b-versatile`). As alterações foram:
+
+*   **[crew/agents.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/agents.py)**:
+    *   Substituí a classe `ChatGroq` do LangChain pela classe nativa `LLM` do CrewAI, configurando-a com o identificador `"groq/llama-3.3-70b-versatile"`.
+    *   Mantive o monkey-patch que desativa a injeção automática de `cache_breakpoint` pelo CrewAI nas mensagens para o Groq, evitando erros de parâmetro não suportado pela API de destino.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Compatibilidade de Modelos de Chat nos Agentes CrewAI**:
+    *   Notei que instâncias de `ChatGroq` geram erros de validação Pydantic no CrewAI porque a validação do parâmetro `llm` exige objetos que herdem de `BaseLLM` ou a classe nativa `LLM` da própria biblioteca.
+    *   Reforcei que, ao usar a classe `LLM` do CrewAI para se conectar ao Groq via LiteLLM, a especificação correta do modelo mantendo as preferências do usuário (`groq/llama-3.3-70b-versatile`) resolve o acoplamento do tipo do objeto sem alterar o modelo selecionado.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Prosseguir com os testes de execução de múltiplos agentes em paralelo ou sequencial no projeto.
+
+---
+
 ## 🛠️ Equipando Agentes com Tools no CrewAI — 11/07/2026 19:53
 
 ### 🛠️ O que eu Modifiquei
