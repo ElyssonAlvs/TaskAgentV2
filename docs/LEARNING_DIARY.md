@@ -4,6 +4,61 @@ Este diário serve para documentar os conceitos estudados, implementações téc
 
 ---
 
+## 🎨 Renderização Premium de Tabelas Markdown no Frontend - 12/07/2026 18:05
+
+### 🛠️ O que eu Modifiquei
+
+Eu melhorei a visualização das tarefas retornadas pelo CrewAI. Antes elas apareciam como listas simples, e agora são exibidas como tabelas bem formatadas na interface web. As alterações foram:
+
+*   **[crew/agents.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/agents.py)**:
+    *   Atualizei o `backstory` do agente **Formatador de Respostas**, adicionando uma instrução explícita para que ele sempre formate listas de tarefas como tabelas Markdown estritas, proibindo o uso de *bullet points*.
+*   **[static/index.html](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/static/index.html)**:
+    *   Importei a biblioteca oficial `marked.js` para realizar a conversão completa e confiável de Markdown para HTML no cliente.
+    *   Refatorei os seletores CSS das tabelas (antes `.tabela-tasks`) para `.resposta table`, garantindo que as tabelas renderizadas via Markdown herdem o mesmo design premium (cores, bordas e *hover states*) planejado anteriormente.
+    *   **Post-Processing do DOM**: Adicionei um loop simples para verificar o texto das células geradas dinamicamente (ex: "done", "pending") e as envolvi novamente com as classes de badge (`<span class="status-badge status-done">`), recuperando o aspecto de UI rica e nativa.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Engenharia de Prompt para Formatação Estrita**:
+    *   Aprendi que agentes LLM, como os do CrewAI, podem ser instruídos a usar formatos de saída rigorosos (como tabelas Markdown) mediante comandos determinísticos no seu `backstory` (ex: "MUITO IMPORTANTE: [...] DEVE SEMPRE").
+2.  **Bibliotecas de Renderização Client-side**:
+    *   Percebi que usar uma biblioteca dedicada como `marked.js` é infinitamente superior a criar substituições regex pontuais, pois ela lida nativamente com elementos complexos como tabelas (`<table>`, `<th>`, `<td>`), blocos de código e espaçamentos com total segurança.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Testar comandos compostos na interface com o novo renderizador ativo.
+
+---
+
+## 🎨 Correção de Formatação de Markdown e Quebra de Linhas no Frontend - 12/07/2026 18:00
+
+### 🛠️ O que eu Modifiquei
+
+Eu corrigi um problema de formatação na interface web em que as quebras de linha e marcações em negrito (`**`) das respostas do CrewAI não eram exibidas corretamente. As alterações foram:
+
+*   **[static/index.html](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/static/index.html)**:
+    *   **CSS (.resposta)**: Adicionei a regra `white-space: pre-wrap;` para garantir que as quebras de linha (`\n`) enviadas pela resposta final do agente sejam renderizadas no navegador em vez de colapsarem.
+    *   **JavaScript (adicionarRespostaAgente)**: Substituí a atribuição direta por `.textContent` para usar um conversor regex básico de markdown para HTML seguro (`.innerHTML`). Ele converte marcações de negrito (`**Texto**`) e itálico (`*Texto*`) enquanto previne falhas de segurança escapando tags indesejadas.
+
+---
+
+### 🧠 O que eu Aprendi / Conceitos Estudados
+
+1.  **Renderização de Textos Dinâmicos e Espaçamento em HTML**:
+    *   Compreendi que, por padrão, o HTML colapsa espaços múltiplos e quebras de linha (`\n`) em um único caractere de espaço. O uso de `white-space: pre-wrap;` permite o comportamento ideal de texto corrido mantendo a diagramação de quebras e listas originadas do LLM.
+2.  **Conversão de Rich Text no Client-side**:
+    *   Entendi a importância de sanitizar entradas de texto de terceiros (como LLMs) antes de renderizá-las via `innerHTML`. Escapar os caracteres `<` e `>` e aplicar substituições controladas com expressões regulares é uma solução rápida e eficiente para suportar formatação básica sem comprometer a segurança.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Continuar refinando a experiência do usuário com o time CrewAI e validar a persistência dos estados.
+
+---
+
 ## 🎨 Integração do CrewAI no Frontend e Documentação Completa — 11/07/2026 20:29
 
 ### 🛠️ O que eu Modifiquei

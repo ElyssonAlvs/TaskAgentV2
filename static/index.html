@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Marked.js para renderização de Markdown (Tabelas, etc) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -149,20 +151,22 @@
       color: #f1f5f9;
       border: 1px solid rgba(255, 255, 255, 0.02);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      white-space: pre-wrap;
     }
 
-    .tabela-tasks {
+    .resposta table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
-      margin-top: 6px;
+      margin-top: 12px;
+      margin-bottom: 12px;
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid #232a3d;
     }
 
-    .tabela-tasks th {
-      background: #1e2538;
+    .resposta th {
+      background: #151926;
       color: #818cf8;
       padding: 10px 14px;
       text-align: left;
@@ -170,14 +174,14 @@
       border-bottom: 1px solid #232a3d;
     }
 
-    .tabela-tasks td {
+    .resposta td {
       padding: 10px 14px;
-      background: #151926;
+      background: #1e2538;
       border-bottom: 1px solid #232a3d;
       color: #cbd5e1;
     }
 
-    .tabela-tasks tr:last-child td { border-bottom: none; }
+    .resposta tr:last-child td { border-bottom: none; }
 
     .status-badge {
       padding: 3px 10px;
@@ -346,7 +350,27 @@
     // Resposta final
     const resposta = document.createElement('div');
     resposta.className = 'resposta';
-    resposta.textContent = dados.resposta;
+    
+    // Configura o marked para quebrar linhas adequadamente
+    marked.setOptions({
+      breaks: true
+    });
+      
+    resposta.innerHTML = marked.parse(dados.resposta);
+
+    // Post-processar células da tabela renderizada para injetar as badges de status premium
+    const celulas = resposta.querySelectorAll('td');
+    celulas.forEach(td => {
+      const texto = td.textContent.trim().toLowerCase();
+      if (['pending', 'pendente'].includes(texto)) {
+        td.innerHTML = `<span class="status-badge status-pending">${td.textContent}</span>`;
+      } else if (['in_progress', 'em andamento'].includes(texto)) {
+        td.innerHTML = `<span class="status-badge status-in_progress">${td.textContent}</span>`;
+      } else if (['done', 'concluído', 'concluida', 'concluída'].includes(texto)) {
+        td.innerHTML = `<span class="status-badge status-done">${td.textContent}</span>`;
+      }
+    });
+
     container.appendChild(resposta);
 
     chat.appendChild(container);

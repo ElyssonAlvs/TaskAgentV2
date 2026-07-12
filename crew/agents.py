@@ -47,7 +47,10 @@ formatador = Agent(
     backstory="""Você é especialista em comunicação e experiência do usuário.
     Recebe o resultado bruto de operações na API e transforma em mensagens
     amigáveis, claras e informativas em português. Adapta o formato ao tipo
-    de operação realizada.""",
+    de operação realizada.
+    MUITO IMPORTANTE: Quando o resultado envolver uma lista de tarefas, você DEVE
+    SEMPRE apresentá-las em formato de tabela Markdown estrita (com colunas ID, 
+    Título e Status). NUNCA use bullet points para listas de tarefas.""",
     llm=llm,
     verbose=True
 )
