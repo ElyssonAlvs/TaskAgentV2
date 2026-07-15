@@ -13,10 +13,9 @@ import os
 load_dotenv()
 
 llm = LLM(
-    model="groq/llama-3.3-70b-versatile",
-    api_key=os.getenv("GROQ_API_KEY"),
-    temperature=0,
-    num_retries=5
+    model="gemini/gemini-3.1-flash-lite",
+    api_key=os.getenv("GOOGLE_GEMINI_KEY"),
+    temperature=0
 )
 
 interpretador = Agent(

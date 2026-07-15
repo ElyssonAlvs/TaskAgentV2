@@ -1,5 +1,18 @@
+from typing import Optional, Dict, Any, Annotated
+from pydantic import BaseModel, Field, BeforeValidator
 from crewai import Task
 from crew.agents import interpretador, executor, formatador
+
+def coerce_bool(v: Any) -> bool:
+    if isinstance(v, str):
+        return v.lower() in ('true', '1')
+    return bool(v)
+
+class IntencaoSchema(BaseModel):
+    intencao: str = Field(description="Intenção identificada: criar | listar | atualizar | deletar")
+    parametros: Dict[str, Any] = Field(description="Parâmetros extraídos da mensagem (id, titulo, status). Chaves devem estar presentes, use null se não informados.")
+    clareza: str = Field(description="Escreva 'true' se tem tudo necessário para executar a ação, 'false' caso contrário")
+    duvida: Optional[str] = Field(None, description="Pergunta para o usuário se clareza for false, senão null ou string vazia")
 
 def criar_tasks(mensagem: str, historico: str):
 
@@ -11,13 +24,10 @@ def criar_tasks(mensagem: str, historico: str):
         
         Mensagem atual: {mensagem}
         
-        Extraia e retorne em formato JSON:
-        - intencao: criar | listar | atualizar | deletar
-        - parametros: id, titulo, status (null se não informado)
-        - clareza: true se tem tudo necessário para executar, false caso contrário
-        - duvida: pergunta para o usuário se clareza for false""",
-        expected_output="JSON com intencao, parametros, clareza e duvida",
-        agent=interpretador
+        Extraia e retorne os campos definidos no output_json.""",
+        expected_output="Objeto JSON contendo intencao, parametros, clareza e duvida",
+        agent=interpretador,
+        output_json=IntencaoSchema
     )
 
     task_executar = Task(
@@ -39,15 +49,18 @@ def criar_tasks(mensagem: str, historico: str):
     )
 
     task_formatar = Task(
-        description="""Com base no resultado da execução anterior, formate
+        description=f"""Com base no resultado da execução anterior e no histórico da conversa, formate
         uma resposta clara e amigável em português para o usuário.
+        
+        Histórico:
+        {historico}
         
         Regras:
         - Para listagem: apresente as tasks de forma organizada com ID, título e status
         - Para criação: confirme com o título e ID gerado
         - Para atualização/deleção: confirme o que foi feito
         - Para erros: explique o problema de forma simples
-        - Para dúvidas: faça a pergunta de forma natural e conversacional""",
+        - Para dúvidas: se a dúvida já foi respondida ou pode ser inferida pelo histórico, responda diretamente. Caso contrário, faça a pergunta de forma natural e conversacional""",
         expected_output="Mensagem final formatada para o usuário em português",
         agent=formatador
     )
