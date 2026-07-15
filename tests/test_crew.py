@@ -1,14 +1,22 @@
+import os
+import sys
+
+# Configura o terminal para UTF-8 para evitar erros de renderização de emojis no Windows
+if sys.platform.startswith('win'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from crew.crew import executar_crew
 
-cenarios = [
-    "mostra todas as tasks",
-    "cria uma task com título Testar CrewAI",
-    "deleta a task de número 8"
-]
+sessao = sys.argv[1] if len(sys.argv) > 1 else "1"
 
-for mensagem in cenarios:
-    print(f"\n{'='*50}")
-    print(f"MENSAGEM: {mensagem}")
-    print('='*50)
-    resultado = executar_crew(mensagem, [])
-    print(f"\nRESULTADO: {resultado}")
+if sessao == "1":
+    print("=== SESSÃO 1 ===")
+    r = executar_crew("cria uma task com título Testar Memória do CrewAI", [])
+    print(f"\nResposta: {r}\n")
+
+elif sessao == "2":
+    print("=== SESSÃO 2 ===")
+    r = executar_crew("qual foi a última task que criamos?", [])
+    print(f"\nResposta: {r}\n")

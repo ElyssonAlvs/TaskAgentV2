@@ -8,7 +8,7 @@ def listar_tasks(query: str) -> str:
     """Lista todas as tasks disponíveis na API. Use quando o usuário quiser ver suas tasks."""
     try:
         # Nota: Usando prefixo /v1/tasks/ conforme configurado na API TaskManager
-        resposta = httpx.get(f"{BASE_URL}/v1/tasks/")
+        resposta = httpx.get(f"{BASE_URL}/v1/tasks/?limit=100")
         resposta.raise_for_status()
         tasks = resposta.json()
         if not tasks:
@@ -88,7 +88,7 @@ def buscar_task_por_titulo(titulo: str) -> str:
     """Busca o ID de uma task pelo título. Use quando o usuário mencionar o nome da task
     mas não o ID, e você precisar do ID para deletar ou atualizar."""
     try:
-        resposta = httpx.get(f"{BASE_URL}/v1/tasks/")
+        resposta = httpx.get(f"{BASE_URL}/v1/tasks/?limit=100")
         resposta.raise_for_status()
         tasks = resposta.json()
         titulo_lower = titulo.lower()

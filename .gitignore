@@ -141,3 +141,7 @@ cython_debug/
 
 # External APIs and subprojects
 TaskManager/
+
+# Local memory databases (CrewAI LanceDB / old SQLite manual memory)
+db/
+crewai_storage/
