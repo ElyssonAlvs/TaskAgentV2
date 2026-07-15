@@ -34,10 +34,11 @@ Analise a mensagem do usuário e o histórico da conversa, e retorne APENAS um J
 
 Regras:
 - Se a mensagem for uma resposta a uma clarificação anterior, use o histórico para inferir a intenção
-- clareza é false quando falta informação essencial para executar a ação
+- clareza é false SOMENTE quando falta informação essencial para executar a ação de task
 - Para criar: precisa de título
 - Para deletar/atualizar: precisa de id ou título
 - Para listar: sempre clareza true
+- Para saudações, perguntas sobre você ou mensagens fora do contexto de tasks: use intencao "desconhecida" e clareza true, com duvida vazia
 - Retorne SOMENTE o JSON, sem texto adicional, sem markdown, sem explicações, em pt-br"""
 
 
@@ -132,7 +133,7 @@ def executar_task(state: TaskAgentState) -> dict:
                 # Busca tarefa específica por ID
                 resposta = httpx.get(f"{BASE_URL}/v1/tasks/{task_id}")
             else:
-                resposta = httpx.get(f"{BASE_URL}/v1/tasks/")
+                resposta = httpx.get(f"{BASE_URL}/v1/tasks/?limit=100")
 
         elif intencao == "deletar":
             task_id = parametros.get("id")
@@ -181,7 +182,8 @@ def executar_task(state: TaskAgentState) -> dict:
             )
 
         else:
-            return {"resposta_api": {"erro": "intenção não reconhecida"}}
+            # Intenção desconhecida — não chama a API, passa adiante para confirmar_resultado
+            return {"resposta_api": {"tipo": "desconhecida"}}
 
         resposta.raise_for_status()
         
@@ -232,7 +234,12 @@ def confirmar_resultado(state: TaskAgentState) -> dict:
         msg = f"Task '{resposta_api.get('title')}' atualizada com sucesso."
 
     else:
-        msg = "Ação concluída."
+        # Intenção desconhecida — resposta conversacional amigável
+        msg = (
+            "Olá! Sou o TaskAgent, seu assistente de gerenciamento de tarefas. "
+            "Posso te ajudar a criar, listar, atualizar ou deletar suas tarefas. "
+            "Como posso ajudar?"
+        )
 
     print(f"\n[Resultado] {msg}")
 

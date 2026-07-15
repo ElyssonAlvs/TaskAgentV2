@@ -3,387 +3,575 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TaskAgent v2 — Painel do Agente</title>
-  <!-- Google Fonts para tipografia premium -->
+  <title>TaskAgent v2 — Painel de IA</title>
+  <meta name="description" content="Assistente inteligente de tarefas com dois motores de IA: CrewAI e LangGraph.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Marked.js para renderização de Markdown (Tabelas, etc) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'Inter', 'Segoe UI', sans-serif;
-      background: #0f111a;
-      color: #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+    :root {
+      --bg-deep:     #090b14;
+      --bg-base:     #0d1017;
+      --bg-surface:  #131826;
+      --bg-card:     #181f2e;
+      --border:      #1e2840;
+      --border-soft: #1a2235;
+
+      --crew-primary:   #818cf8;
+      --crew-accent:    #6366f1;
+      --crew-glow:      rgba(99,102,241,0.18);
+      --crew-badge-bg:  rgba(99,102,241,0.12);
+
+      --graph-primary:  #22d3ee;
+      --graph-accent:   #06b6d4;
+      --graph-glow:     rgba(6,182,212,0.15);
+      --graph-badge-bg: rgba(6,182,212,0.10);
+
+      --text-primary:   #f0f4ff;
+      --text-secondary: #94a3b8;
+      --text-muted:     #4b5880;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
     }
 
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg-deep); color: var(--text-primary); overflow: hidden; }
+
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ── HEADER ─────────────────────────────────────────────────── */
     header {
-      padding: 18px 28px;
-      background: #151926;
-      border-bottom: 1px solid #232a3d;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      z-index: 10;
+      padding: 14px 28px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      box-shadow: 0 1px 30px rgba(0,0,0,0.4);
+      z-index: 20; flex-shrink: 0;
     }
 
-    header h1 {
-      font-size: 19px;
-      font-weight: 700;
-      color: #818cf8;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; box-shadow: 0 0 16px rgba(99,102,241,0.35);
     }
 
-    header h1::before {
-      content: '';
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background: #818cf8;
-      border-radius: 50%;
-      box-shadow: 0 0 10px #818cf8;
+    .header-titles h1 { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+    .header-titles small { font-size: 11px; color: var(--text-muted); }
+
+    #engine-badge {
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 600;
+      border: 1px solid transparent;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.3s ease;
     }
+    #engine-badge.crew  { background: var(--crew-badge-bg);  border-color: rgba(99,102,241,0.3); color: var(--crew-primary); }
+    #engine-badge.graph { background: var(--graph-badge-bg); border-color: rgba(6,182,212,0.3);  color: var(--graph-primary); }
+    #engine-badge .dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse-dot 2s infinite; }
+    #engine-badge.crew  .dot { background: var(--crew-primary);  box-shadow: 0 0 6px var(--crew-primary); }
+    #engine-badge.graph .dot { background: var(--graph-primary); box-shadow: 0 0 6px var(--graph-primary); }
+
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 
     #btn-limpar {
-      background: transparent;
-      border: 1px solid #2e384e;
-      color: #94a3b8;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s ease;
+      background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer;
+      font-size: 12.5px; font-weight: 500; font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease; white-space: nowrap;
     }
+    #btn-limpar:hover { border-color: var(--crew-accent); color: var(--crew-primary); background: var(--crew-glow); }
 
-    #btn-limpar:hover {
-      border-color: #818cf8;
-      color: #818cf8;
-      background: rgba(129, 140, 248, 0.05);
-    }
-
+    /* ── CHAT ───────────────────────────────────────────────────── */
     #chat {
-      flex: 1;
-      overflow-y: auto;
+      flex: 1; overflow-y: auto;
       padding: 32px 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      background: radial-gradient(circle at top right, #131725, #0f111a);
+      display: flex; flex-direction: column; gap: 24px;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 0%, rgba(99,102,241,0.04), transparent),
+        radial-gradient(ellipse 50% 50% at 0% 100%, rgba(6,182,212,0.03), transparent),
+        var(--bg-base);
     }
+    #chat::-webkit-scrollbar { width: 5px; }
+    #chat::-webkit-scrollbar-track { background: transparent; }
+    #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    /* Scrollbar premium */
-    #chat::-webkit-scrollbar {
-      width: 6px;
-    }
-    #chat::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    #chat::-webkit-scrollbar-thumb {
-      background: #232a3d;
-      border-radius: 4px;
-    }
-    #chat::-webkit-scrollbar-thumb:hover {
-      background: #2e384e;
-    }
-
+    /* ── MENSAGENS ──────────────────────────────────────────────── */
     .mensagem-usuario {
       align-self: flex-end;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff;
-      padding: 12px 20px;
+      background: linear-gradient(135deg, #5a5fe8, #4338ca);
+      color: #fff; padding: 11px 18px;
       border-radius: 18px 18px 4px 18px;
-      max-width: 60%;
-      font-size: 14.5px;
-      line-height: 1.5;
-      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
-      animation: messageSlideIn 0.2s ease-out;
+      max-width: 58%; font-size: 14px; line-height: 1.55;
+      box-shadow: 0 4px 20px rgba(67,56,202,0.28), 0 0 0 1px rgba(255,255,255,0.05);
+      animation: slideUp 0.22s ease-out;
     }
 
     .mensagem-agente {
-      align-self: flex-start;
-      max-width: 75%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      animation: messageSlideIn 0.2s ease-out;
+      align-self: flex-start; max-width: 82%;
+      display: flex; flex-direction: column; gap: 10px;
+      animation: slideUp 0.22s ease-out;
     }
 
+    @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── TRACE / PENSAMENTO ─────────────────────────────────────── */
     .pensamento {
-      background: #151926;
-      border: 1px solid #232a3d;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 12px;
-      color: #94a3b8;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-family: 'Consolas', 'Courier New', monospace;
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); overflow: hidden;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.2);
     }
-
-    .pensamento span {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .pensamento-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-bottom: 1px solid var(--border-soft);
+      background: rgba(255,255,255,0.02);
     }
+    .pensamento-header .engine-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; }
+    .pensamento-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 5px; }
+    .pensamento-linha { display: flex; align-items: baseline; gap: 8px; color: var(--text-secondary); line-height: 1.5; }
+    .pensamento-linha .prefix { color: var(--text-muted); user-select: none; font-size: 10px; }
 
-    .pensamento span::before {
-      content: '⚙️';
-      font-size: 10px;
-    }
+    .pensamento.crew  .engine-label, .pensamento.crew  .pensamento-linha:first-child { color: var(--crew-primary); }
+    .pensamento.graph .engine-label, .pensamento.graph .pensamento-linha:first-child { color: var(--graph-primary); }
+    .pensamento.crew  .pensamento-header { border-bottom-color: rgba(99,102,241,0.2); }
+    .pensamento.graph .pensamento-header { border-bottom-color: rgba(6,182,212,0.2); }
 
+    /* ── RESPOSTA TEXTO ─────────────────────────────────────────── */
     .resposta {
-      background: #1e2538;
-      border-radius: 4px 18px 18px 18px;
-      padding: 12px 20px;
-      font-size: 14.5px;
-      line-height: 1.5;
-      color: #f1f5f9;
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      white-space: pre-wrap;
+      background: var(--bg-card); border-radius: 4px var(--radius-lg) var(--radius-lg) var(--radius-lg);
+      padding: 14px 20px; font-size: 14px; line-height: 1.65; color: #d4daf5;
+      border: 1px solid var(--border-soft); box-shadow: 0 4px 24px rgba(0,0,0,0.15);
     }
+    .resposta.crew  { border-left: 3px solid rgba(99,102,241,0.5); }
+    .resposta.graph { border-left: 3px solid rgba(6,182,212,0.5); }
+    .resposta p { margin-bottom: 8px; }
+    .resposta p:last-child { margin-bottom: 0; }
+    .resposta strong { color: var(--text-primary); }
+    .resposta code { background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a5b4fc; }
 
-    .resposta table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 12.5px;
-      margin-top: 16px;
-      margin-bottom: 16px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(99, 102, 241, 0.18);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(99,102,241,0.08);
-    }
-
-    /* Header premium com gradiente */
-    .resposta thead tr {
-      background: linear-gradient(135deg, #1a1f38 0%, #12172b 100%);
-    }
-
-    .resposta th {
-      color: #6366f1;
-      padding: 9px 16px;
-      font-weight: 700;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      border-bottom: 2px solid rgba(99, 102, 241, 0.3);
-      white-space: nowrap;
-    }
-
-    /* Coluna ID — compacta, monoespaçada, centralizada */
-    .resposta th:first-child,
-    .resposta td:first-child {
-      width: 52px;
-      text-align: center;
-      font-family: 'Consolas', monospace;
-      font-size: 11.5px;
-      color: #475569;
-      padding-left: 12px;
-      padding-right: 12px;
-    }
-    .resposta th:first-child { color: #4f5e7a; }
-
-    /* Coluna Título */
-    .resposta th:nth-child(2),
-    .resposta td:nth-child(2) {
-      font-weight: 500;
-    }
-
-    /* Coluna Status — centralizada */
-    .resposta th:last-child,
-    .resposta td:last-child {
-      text-align: center;
-      width: 100px;
-    }
-
-    .resposta td {
-      padding: 8px 16px;
-      border-bottom: 1px solid rgba(35, 42, 61, 0.6);
-      color: #94a3b8;
-      transition: background 0.15s ease, color 0.15s ease;
-      vertical-align: middle;
-    }
-
-    /* Zebra striping refinado */
-    .resposta tbody tr:nth-child(odd)  td { background: rgba(15, 18, 32, 0.7); }
-    .resposta tbody tr:nth-child(even) td { background: rgba(26, 31, 52, 0.6); }
-
-    /* Row hover com borda esquerda accent */
-    .resposta tbody tr:hover td {
-      background: rgba(99, 102, 241, 0.09) !important;
-      color: #e2e8f0;
-    }
-    .resposta tbody tr:hover td:first-child {
-      box-shadow: inset 3px 0 0 #6366f1;
-    }
-
-    .resposta tr:last-child td { border-bottom: none; }
-    .resposta tr:last-child td:first-child { border-bottom-left-radius: 12px; }
-    .resposta tr:last-child td:last-child  { border-bottom-right-radius: 12px; }
-
-    /* Badges com dot indicator */
+    /* ── STATUS BADGES ──────────────────────────────────────────── */
     .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 7px 2px 5px;
-      border-radius: 20px;
-      font-size: 8.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px 3px 7px; border-radius: 20px;
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; border: 1px solid transparent;
+      font-family: 'JetBrains Mono', monospace; white-space: nowrap;
     }
-    .status-badge::before {
-      content: '';
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .status-badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .status-pending    { background:rgba(245,158,11,.08); color:#f59e0b; border-color:rgba(245,158,11,.22); }
+    .status-pending::before    { background:#f59e0b; box-shadow:0 0 5px #f59e0b99; }
+    .status-in_progress{ background:rgba(99,102,241,.10); color:#818cf8; border-color:rgba(99,102,241,.28); }
+    .status-in_progress::before{ background:#818cf8; box-shadow:0 0 5px #818cf899; }
+    .status-done       { background:rgba(16,185,129,.08); color:#10b981; border-color:rgba(16,185,129,.22); }
+    .status-done::before       { background:#10b981; box-shadow:0 0 5px #10b98199; }
+
+    /* ── PAINEL DE TASKS ────────────────────────────────────────── */
+    .task-panel {
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md); overflow: hidden;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.25); animation: slideUp 0.25s ease-out;
     }
 
-    .status-pending {
-      background: rgba(245, 158, 11, 0.08);
-      color: #f59e0b;
-      border-color: rgba(245, 158, 11, 0.2);
+    /* Header do painel */
+    .task-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; gap: 12px; flex-wrap: wrap;
+      background: linear-gradient(135deg, #151d35 0%, #0f1628 100%);
+      border-bottom: 1px solid var(--border);
     }
-    .status-pending::before { background: #f59e0b; box-shadow: 0 0 4px #f59e0b88; }
-
-    .status-in_progress {
-      background: rgba(99, 102, 241, 0.1);
-      color: #818cf8;
-      border-color: rgba(99, 102, 241, 0.25);
+    .task-panel-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-primary); }
+    .task-total-badge {
+      background: rgba(99,102,241,0.14); color: var(--crew-primary);
+      border: 1px solid rgba(99,102,241,0.25); padding: 1px 9px;
+      border-radius: 20px; font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
     }
-    .status-in_progress::before { background: #818cf8; box-shadow: 0 0 4px #818cf888; }
-
-    .status-done {
-      background: rgba(16, 185, 129, 0.08);
-      color: #10b981;
-      border-color: rgba(16, 185, 129, 0.2);
+    .task-summary { display: flex; gap: 6px; flex-wrap: wrap; }
+    .summary-chip {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 10px; font-family: 'JetBrains Mono', monospace;
     }
-    .status-done::before { background: #10b981; box-shadow: 0 0 4px #10b98188; }
+    .chip-pending  { background:rgba(245,158,11,.07);  color:#f59e0b;  border:1px solid rgba(245,158,11,.2); }
+    .chip-progress { background:rgba(99,102,241,.07);  color:#818cf8;  border:1px solid rgba(99,102,241,.2); }
+    .chip-done     { background:rgba(16,185,129,.07);  color:#10b981;  border:1px solid rgba(16,185,129,.2); }
 
+    /* Tabela de tasks */
+    .task-table-wrap { overflow-x: auto; }
+
+    .task-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .task-table thead tr {
+      background: rgba(10,13,25,0.6);
+      border-bottom: 1px solid rgba(99,102,241,0.2);
+    }
+
+    .task-table th {
+      padding: 9px 16px; text-align: left;
+      font-size: 9.5px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: rgba(99,102,241,0.8);
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .task-table th.col-id     { width: 56px; text-align: center; }
+    .task-table th.col-status { width: 130px; text-align: center; }
+
+    .task-table tbody tr {
+      border-bottom: 1px solid rgba(30,40,64,0.5);
+      transition: background 0.15s ease;
+    }
+    .task-table tbody tr:last-child { border-bottom: none; }
+    .task-table tbody tr:nth-child(odd)  { background: rgba(10,13,25,0.4); }
+    .task-table tbody tr:nth-child(even) { background: rgba(20,27,48,0.4); }
+    .task-table tbody tr:hover { background: rgba(99,102,241,0.07) !important; }
+    .task-table tbody tr:hover .td-id { box-shadow: inset 3px 0 0 var(--crew-accent); }
+
+    .task-table td { padding: 10px 16px; color: var(--text-secondary); vertical-align: middle; }
+    .task-table tbody tr:hover td { color: var(--text-primary); }
+
+    .td-id {
+      text-align: center; font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--text-muted);
+      transition: box-shadow 0.15s ease;
+    }
+    .td-title { font-weight: 500; }
+    .td-status { text-align: center; }
+
+    /* Paginação */
+    .task-pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px; border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.015); gap: 16px; flex-wrap: wrap;
+    }
+    .pagination-info { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+
+    .pagination-controls { display: flex; align-items: center; gap: 5px; }
+
+    .btn-page {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      color: var(--text-muted); min-width: 30px; height: 28px;
+      padding: 0 10px; border-radius: 6px; cursor: pointer;
+      font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
+      transition: all 0.18s ease; display: flex; align-items: center; justify-content: center;
+    }
+    .btn-page:hover:not(:disabled) { border-color: var(--crew-accent); color: var(--crew-primary); background: var(--crew-glow); }
+    .btn-page:disabled { opacity: 0.25; cursor: not-allowed; }
+    .btn-page.active { background: var(--crew-badge-bg); border-color: rgba(99,102,241,0.4); color: var(--crew-primary); font-weight: 700; }
+
+    .page-separator { color: var(--text-muted); font-size: 12px; padding: 0 2px; }
+
+    /* ── INPUT AREA ─────────────────────────────────────────────── */
     #input-area {
-      padding: 20px 28px;
-      background: #151926;
-      border-top: 1px solid #232a3d;
-      display: flex;
-      gap: 12px;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-      z-index: 10;
+      padding: 18px 28px; background: var(--bg-surface); border-top: 1px solid var(--border);
+      display: flex; gap: 12px; box-shadow: 0 -4px 30px rgba(0,0,0,0.2); z-index: 20; flex-shrink: 0;
     }
-
     #input {
-      flex: 1;
-      background: #0f111a;
-      border: 1px solid #232a3d;
-      color: #f1f5f9;
-      padding: 12px 18px;
-      border-radius: 10px;
-      font-size: 14.5px;
-      outline: none;
-      transition: all 0.2s ease;
+      flex: 1; background: var(--bg-base); border: 1px solid var(--border);
+      color: var(--text-primary); padding: 12px 18px; border-radius: var(--radius-sm);
+      font-size: 14px; font-family: 'Inter', sans-serif; outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-
-    #input:focus {
-      border-color: #818cf8;
-      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.15);
-    }
+    #input::placeholder { color: var(--text-muted); }
+    #input:focus { border-color: var(--crew-accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 
     #btn-enviar {
       background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14.5px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+      color: #fff; border: none; padding: 12px 22px; border-radius: var(--radius-sm);
+      cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(79,70,229,0.2); white-space: nowrap;
     }
+    #btn-enviar:hover  { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,.3); }
+    #btn-enviar:active { transform: translateY(0); }
+    #btn-enviar:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow: none; transform: none; }
 
-    #btn-enviar:hover {
-      background: linear-gradient(135deg, #4f46e5, #4338ca);
-      transform: translateY(-1px);
-    }
-    
-    #btn-enviar:active {
-      transform: translateY(0);
-    }
+    /* ── LOADING ────────────────────────────────────────────────── */
+    .loading { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 13px; font-style: italic; }
+    .loading-dots { display: flex; gap: 4px; }
+    .loading-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--crew-primary); animation: bounce 1.2s infinite ease-in-out; }
+    .loading-dots span:nth-child(2) { animation-delay: .15s; }
+    .loading-dots span:nth-child(3) { animation-delay: .3s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(.7);opacity:.4} 40%{transform:scale(1);opacity:1} }
 
-    #btn-enviar:disabled {
-      background: #232a3d;
-      color: #64748b;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
+    /* ── WELCOME ────────────────────────────────────────────────── */
+    .welcome {
+      margin: auto; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      opacity: 0.5; pointer-events: none; user-select: none;
     }
-
-    .loading {
-      color: #64748b;
-      font-size: 13.5px;
-      font-style: italic;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding-left: 4px;
-      animation: pulse 1.5s infinite;
-    }
-
-    .loading::before {
-      content: '';
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background: #818cf8;
-      border-radius: 50%;
-    }
-
-    @keyframes messageSlideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
+    .welcome-icon { font-size: 48px; }
+    .welcome h2 { font-size: 18px; font-weight: 600; color: var(--text-secondary); }
+    .welcome p  { font-size: 13px; color: var(--text-muted); max-width: 340px; line-height: 1.6; }
   </style>
 </head>
 <body>
+<div class="app">
 
-<header>
-  <h1>TaskAgent v2</h1>
-  <button id="btn-limpar" onclick="limparHistorico()">Limpar conversa</button>
-</header>
+  <header>
+    <div class="header-left">
+      <div class="logo-icon">🤖</div>
+      <div class="header-titles">
+        <h1>TaskAgent <span style="color:var(--crew-primary)">v2</span></h1>
+        <small>Orquestrador de IA · Multi-motor</small>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="engine-badge" class="crew">
+        <span class="dot"></span>
+        <span class="engine-label">CrewAI</span>
+      </div>
+      <button id="btn-limpar" onclick="limparHistorico()">Limpar conversa</button>
+    </div>
+  </header>
 
-<div id="chat"></div>
+  <div id="chat">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">✨</div>
+      <h2>Olá! Como posso ajudar?</h2>
+      <p>Gerencie suas tarefas conversando naturalmente.<br>
+         Tente: <em>"liste minhas tarefas"</em> ou <em>"crie uma tarefa Estudar Python"</em>.</p>
+    </div>
+  </div>
 
-<div id="input-area">
-  <input id="input" type="text" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter') enviar()">
-  <button id="btn-enviar" onclick="enviar()">Enviar</button>
+  <div id="input-area">
+    <input id="input" type="text" placeholder="Digite sua mensagem..." autocomplete="off"
+           onkeydown="if(event.key==='Enter') enviar()">
+    <button id="btn-enviar" onclick="enviar()">Enviar →</button>
+  </div>
+
 </div>
 
 <script>
-  const chat = document.getElementById('chat');
-  const input = document.getElementById('input');
+  /* ── refs ── */
+  const chat      = document.getElementById('chat');
+  const input     = document.getElementById('input');
   const btnEnviar = document.getElementById('btn-enviar');
+  const badge     = document.getElementById('engine-badge');
+  let   welcome   = document.getElementById('welcome');
 
+  marked.setOptions({ breaks: true, gfm: true });
+
+  const PAGE_SIZE = 5;
+
+  /* ════════════════════════════════════════════════════════════════
+   * STATUS helpers
+   * ════════════════════════════════════════════════════════════════ */
+  const STATUS_MAP = {
+    'pending':'pending','pendente':'pending',
+    'in_progress':'in_progress','em andamento':'in_progress',
+    'done':'done','concluído':'done','concluída':'done','concluida':'done',
+  };
+  const STATUS_LABEL = { pending:'Pendente', in_progress:'Em progresso', done:'Concluída' };
+
+  function normalizarStatus(s) {
+    s = (s || '').trim().toLowerCase();
+    if (STATUS_MAP[s]) return STATUS_MAP[s];
+    if (s.startsWith('conclui')) return 'done';
+    if (s.includes('progress') || s.includes('andamento')) return 'in_progress';
+    return 'pending';
+  }
+
+  function badgeHTML(status) {
+    return `<span class="status-badge status-${status}">${STATUS_LABEL[status] || status}</span>`;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+   * PARSER DE TASKS  (LangGraph texto  +  CrewAI tabela markdown)
+   * ════════════════════════════════════════════════════════════════ */
+  function parsearTasks(texto) {
+    const tasks = [];
+
+    // Formato LangGraph:  "[2] Título - done"  ou  "2. Título - pending"
+    const reTexto = /^\s*\[?(\d+)\]?[\.\s]\s*(.+?)\s*[-–]\s*(pending|in_progress|done|pendente|em andamento|conclu[íi]d[ao])\s*$/gim;
+    let m;
+    while ((m = reTexto.exec(texto)) !== null) {
+      tasks.push({ id: m[1], titulo: m[2].trim(), status: normalizarStatus(m[3]) });
+    }
+    if (tasks.length > 0) return tasks;
+
+    // Formato CrewAI: linhas de tabela markdown  "| 2 | Título | done |"
+    const reTabela = /\|\s*(\d+)\s*\|\s*(.+?)\s*\|\s*(pending|in_progress|done|pendente|em andamento|conclu[íi]d[ao])\s*\|/gim;
+    while ((m = reTabela.exec(texto)) !== null) {
+      tasks.push({ id: m[1], titulo: m[2].trim(), status: normalizarStatus(m[3]) });
+    }
+    return tasks;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+   * PAINEL DE TASKS — tabela paginada
+   * ════════════════════════════════════════════════════════════════ */
+  function criarPainelTasks(tasks) {
+    let paginaAtual = 0;
+    const totalPaginas = Math.ceil(tasks.length / PAGE_SIZE);
+
+    const cnt = { pending: 0, in_progress: 0, done: 0 };
+    tasks.forEach(t => cnt[t.status] !== undefined && cnt[t.status]++);
+
+    /* ── wrapper ── */
+    const painel = document.createElement('div');
+    painel.className = 'task-panel';
+
+    /* ── header ── */
+    painel.innerHTML = `
+      <div class="task-panel-header">
+        <div class="task-panel-title">
+          📋 Tarefas
+          <span class="task-total-badge">${tasks.length} total</span>
+        </div>
+        <div class="task-summary">
+          ${cnt.pending    > 0 ? `<span class="summary-chip chip-pending">⏳ ${cnt.pending} pendente${cnt.pending>1?'s':''}</span>`     : ''}
+          ${cnt.in_progress> 0 ? `<span class="summary-chip chip-progress">🔄 ${cnt.in_progress} em progresso</span>` : ''}
+          ${cnt.done       > 0 ? `<span class="summary-chip chip-done">✅ ${cnt.done} concluída${cnt.done>1?'s':''}</span>`             : ''}
+        </div>
+      </div>
+      <div class="task-table-wrap">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th class="col-id">#</th>
+              <th>Título</th>
+              <th class="col-status">Status</th>
+            </tr>
+          </thead>
+          <tbody id="task-tbody-${Date.now()}"></tbody>
+        </table>
+      </div>
+      <div class="task-pagination" id="task-pag-${Date.now()}"></div>
+    `;
+
+    const tbody  = painel.querySelector('tbody');
+    const pagDiv = painel.querySelector('.task-pagination');
+
+    /* ── render de página ── */
+    function renderPagina(p) {
+      paginaAtual = p;
+      const inicio = p * PAGE_SIZE;
+      const fim    = Math.min(inicio + PAGE_SIZE, tasks.length);
+
+      tbody.innerHTML = '';
+      tasks.slice(inicio, fim).forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="td-id">${t.id}</td>
+          <td class="td-title">${escapeHtml(t.titulo)}</td>
+          <td class="td-status">${badgeHTML(t.status)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      /* ── paginação ── */
+      pagDiv.innerHTML = '';
+
+      const info = document.createElement('span');
+      info.className = 'pagination-info';
+      info.textContent = `Exibindo ${inicio + 1}–${fim} de ${tasks.length} tarefas`;
+      pagDiv.appendChild(info);
+
+      if (totalPaginas > 1) {
+        const ctrl = document.createElement('div');
+        ctrl.className = 'pagination-controls';
+
+        /* ← */
+        const btnPrev = criarBtnPage('←', p === 0, () => renderPagina(paginaAtual - 1));
+        ctrl.appendChild(btnPrev);
+
+        /* números */
+        const maxVisiveis = 5;
+        let inicio_p = Math.max(0, p - 2);
+        let fim_p    = Math.min(totalPaginas - 1, inicio_p + maxVisiveis - 1);
+        if (fim_p - inicio_p < maxVisiveis - 1) inicio_p = Math.max(0, fim_p - maxVisiveis + 1);
+
+        if (inicio_p > 0) {
+          ctrl.appendChild(criarBtnPage('1', false, () => renderPagina(0)));
+          if (inicio_p > 1) {
+            const sep = document.createElement('span');
+            sep.className = 'page-separator'; sep.textContent = '…';
+            ctrl.appendChild(sep);
+          }
+        }
+
+        for (let i = inicio_p; i <= fim_p; i++) {
+          const btn = criarBtnPage(String(i + 1), false, () => renderPagina(i));
+          if (i === p) btn.classList.add('active');
+          ctrl.appendChild(btn);
+        }
+
+        if (fim_p < totalPaginas - 1) {
+          if (fim_p < totalPaginas - 2) {
+            const sep = document.createElement('span');
+            sep.className = 'page-separator'; sep.textContent = '…';
+            ctrl.appendChild(sep);
+          }
+          ctrl.appendChild(criarBtnPage(String(totalPaginas), false, () => renderPagina(totalPaginas - 1)));
+        }
+
+        /* → */
+        const btnNext = criarBtnPage('→', p >= totalPaginas - 1, () => renderPagina(paginaAtual + 1));
+        ctrl.appendChild(btnNext);
+
+        pagDiv.appendChild(ctrl);
+      }
+    }
+
+    renderPagina(0);
+    return painel;
+  }
+
+  function criarBtnPage(label, disabled, onClick) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-page';
+    btn.textContent = label;
+    btn.disabled = disabled;
+    if (!disabled) btn.onclick = onClick;
+    return btn;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+   * Limpa da resposta texto as linhas já extraídas como tasks
+   * ════════════════════════════════════════════════════════════════ */
+  function limparTextoTasks(texto) {
+    return texto
+      .split('\n')
+      .filter(l => !l.match(/^\s*\[?\d+\]?[\.\s]\s*.+?[-–]\s*(pending|in_progress|done|pendente|em andamento|conclu)/i))
+      .filter(l => !l.match(/^\s*tasks?\s*(encontradas?|listadas?)?\s*:?\s*$/i))  // "Tasks encontradas:"
+      .filter(l => !l.match(/^\|\s*\d+\s*\|/))           // linhas de dados da tabela MD
+      .filter(l => !l.match(/^\|[-:\s|]+\|/))             // separadores da tabela MD
+      .filter(l => !l.match(/^\|\s*(id|#|título|title|status)/i))  // cabeçalho da tabela MD
+      .join('\n')
+      .trim();
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+   * ENGINE BADGE
+   * ════════════════════════════════════════════════════════════════ */
+  function detectarMotor(pensamento) {
+    const first = (pensamento[0] || '').toLowerCase();
+    return (first.includes('langgraph') || first.includes('grafo')) ? 'graph' : 'crew';
+  }
+
+  function atualizarBadge(motor) {
+    badge.className = motor;
+    badge.querySelector('.engine-label').textContent = motor === 'graph' ? 'LangGraph' : 'CrewAI';
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+   * RENDER DE MENSAGENS
+   * ════════════════════════════════════════════════════════════════ */
   function adicionarMensagemUsuario(texto) {
+    if (welcome) { welcome.style.display = 'none'; welcome = null; }
     const div = document.createElement('div');
     div.className = 'mensagem-usuario';
     div.textContent = texto;
@@ -392,123 +580,126 @@
   }
 
   function adicionarRespostaAgente(dados) {
+    const motor = detectarMotor(dados.pensamento || []);
+    atualizarBadge(motor);
+
     const container = document.createElement('div');
     container.className = 'mensagem-agente';
 
-    // Pensamento
-    const pensamento = document.createElement('div');
-    pensamento.className = 'pensamento';
-    dados.pensamento.forEach(linha => {
-      const span = document.createElement('span');
-      span.textContent = linha;
-      pensamento.appendChild(span);
-    });
-    container.appendChild(pensamento);
+    /* Trace / Pensamento */
+    if (dados.pensamento && dados.pensamento.length > 0) {
+      const bloco = document.createElement('div');
+      bloco.className = `pensamento ${motor}`;
 
-    // Tasks em tabela
-    if (dados.tasks && dados.tasks.length > 0) {
-      const tabela = document.createElement('table');
-      tabela.className = 'tabela-tasks';
-      tabela.innerHTML = `
-        <thead>
-          <tr><th>ID</th><th>Título</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          ${dados.tasks.map(t => `
-            <tr>
-              <td>${t.id}</td>
-              <td>${t.title || t.titulo || 'Sem título'}</td>
-              <td><span class="status-badge status-${t.status}">${t.status}</span></td>
-            </tr>
-          `).join('')}
-        </tbody>
+      const header = document.createElement('div');
+      header.className = 'pensamento-header';
+      header.innerHTML = `
+        <span>${motor === 'graph' ? '🔀' : '🤖'}</span>
+        <span class="engine-label">${motor === 'graph' ? 'LangGraph · Grafo de Estado' : 'CrewAI · Multi-Agentes'}</span>
       `;
-      container.appendChild(tabela);
+      bloco.appendChild(header);
+
+      const body = document.createElement('div');
+      body.className = 'pensamento-body';
+      dados.pensamento.forEach((linha, i) => {
+        const row = document.createElement('div');
+        row.className = 'pensamento-linha';
+        row.innerHTML = `<span class="prefix">[${String(i+1).padStart(2,'0')}]</span><span>${escapeHtml(linha)}</span>`;
+        body.appendChild(row);
+      });
+      bloco.appendChild(body);
+      container.appendChild(bloco);
     }
 
-    // Resposta final
-    const resposta = document.createElement('div');
-    resposta.className = 'resposta';
-    
-    // Configura o marked para quebrar linhas adequadamente
-    marked.setOptions({
-      breaks: true
-    });
-      
-    resposta.innerHTML = marked.parse(dados.resposta);
+    /* Tenta extrair tasks */
+    const respostaTexto = dados.resposta || '';
+    const tasks = parsearTasks(respostaTexto);
 
-    // Post-processar células da tabela renderizada para injetar as badges de status premium
-    const celulas = resposta.querySelectorAll('td');
-    celulas.forEach(td => {
-      const texto = td.textContent.trim().toLowerCase();
-      if (['pending', 'pendente'].includes(texto)) {
-        td.innerHTML = `<span class="status-badge status-pending">${td.textContent}</span>`;
-      } else if (['in_progress', 'em andamento'].includes(texto)) {
-        td.innerHTML = `<span class="status-badge status-in_progress">${td.textContent}</span>`;
-      } else if (['done', 'concluído', 'concluida', 'concluída'].includes(texto)) {
-        td.innerHTML = `<span class="status-badge status-done">${td.textContent}</span>`;
+    if (tasks.length > 0) {
+      container.appendChild(criarPainelTasks(tasks));
+
+      const resto = limparTextoTasks(respostaTexto);
+      if (resto) {
+        const div = document.createElement('div');
+        div.className = `resposta ${motor}`;
+        div.innerHTML = marked.parse(resto);
+        container.appendChild(div);
       }
-    });
-
-    container.appendChild(resposta);
+    } else {
+      /* Resposta textual normal */
+      const div = document.createElement('div');
+      div.className = `resposta ${motor}`;
+      div.innerHTML = marked.parse(respostaTexto);
+      container.appendChild(div);
+    }
 
     chat.appendChild(container);
     rolarParaBaixo();
   }
 
+  /* ════════════════════════════════════════════════════════════════
+   * LOADING / ENVIAR / LIMPAR
+   * ════════════════════════════════════════════════════════════════ */
   function adicionarLoading() {
     const div = document.createElement('div');
-    div.className = 'loading';
-    div.id = 'loading';
-    div.textContent = 'Agente processando...';
+    div.className = 'loading'; div.id = 'loading';
+    div.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div><span>Agente processando...</span>`;
     chat.appendChild(div);
     rolarParaBaixo();
     return div;
   }
 
-  function rolarParaBaixo() {
-    chat.scrollTop = chat.scrollHeight;
-  }
+  function rolarParaBaixo() { chat.scrollTop = chat.scrollHeight; }
 
   async function enviar() {
     const texto = input.value.trim();
     if (!texto) return;
-
     input.value = '';
     btnEnviar.disabled = true;
-
+    input.disabled = true;
     adicionarMensagemUsuario(texto);
     const loading = adicionarLoading();
-
     try {
-      const resposta = await fetch('/chat', {
+      const resp = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mensagem: texto })
       });
-
-      const dados = await resposta.json();
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       loading.remove();
-      adicionarRespostaAgente(dados);
-
+      adicionarRespostaAgente(await resp.json());
     } catch (err) {
       loading.remove();
       adicionarRespostaAgente({
-        pensamento: [' Erro de conexão'],
-        resposta: 'Não consegui conectar ao agente.',
-        tasks: null
+        pensamento: [`❌ Erro: ${err.message}`],
+        resposta: 'Não consegui conectar ao agente. Verifique se o servidor está rodando.',
       });
     }
-
     btnEnviar.disabled = false;
+    input.disabled = false;
     input.focus();
   }
 
   async function limparHistorico() {
     await fetch('/chat/historico', { method: 'DELETE' });
     chat.innerHTML = '';
+    const w = document.createElement('div');
+    w.className = 'welcome'; w.id = 'welcome';
+    w.innerHTML = `<div class="welcome-icon">✨</div><h2>Conversa limpa!</h2><p>Pode começar uma nova conversa quando quiser.</p>`;
+    chat.appendChild(w);
+    welcome = w;
   }
-</script>
 
+  /* ── inicializar: consulta o motor ativo no servidor ── */
+  async function init() {
+    input.focus();
+    try {
+      const data = await (await fetch('/engine')).json();
+      atualizarBadge(data.engine === 'langgraph' ? 'graph' : 'crew');
+    } catch (_) {}
+  }
+
+  init();
+</script>
 </body>
 </html>
