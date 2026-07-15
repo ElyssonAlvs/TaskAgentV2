@@ -1,6 +1,80 @@
 # Diário de Aprendizado - TaskAgent V2 (Orquestração de Agentes de IA)
 
-Este diário serve para documentar os conceitos estudados, implementações técnicas e evoluções ao longo do desenvolvimento do TaskAgent V2.
+ Este diário serve para documentar os conceitos estudados, implementações técnicas e evoluções ao longo do desenvolvimento do TaskAgent V2.
+
+---
+
+## 📦 Organização de Versionamento e Commits Semânticos — 15/07/2026 19:35
+
+### 🛠️ O que eu Modifiquei
+
+Realizei a revisão e separação de todas as alterações pendentes no repositório, agrupando-as por objetivo e aplicando as melhores práticas de *Conventional Commits* (commits semânticos) antes de enviar para o GitHub.
+
+### 🧠 O que foi Aprendido / Conceitos Estudados
+
+1.  **Conventional Commits e Versionamento Semântico**:
+    *   Reforcei a prática de não usar `git commit -am "várias coisas"`. Separar as mudanças em blocos lógicos como `feat(crew): ...`, `fix(crew): ...` e `feat(core): ...` facilita o rastreamento do histórico, o *code review* e o *rollback* em caso de falhas específicas.
+    *   Compreendi que separar as entregas mantém o repositório limpo e profissional, demonstrando maturidade técnica em metodologias ágeis.
+
+---
+
+## 🧠 Ativação da Memória Semântica com Google Embeddings e Correção de Paginação na API — 15/07/2026 21:40
+
+### 🛠️ O que eu Modifiquei
+
+Eu reativei a memória semântica nativa do CrewAI (ChromaDB/LanceDB) utilizando a API do Google Gemini para geração de embeddings e corrigi a exibição de tarefas longas limitadas pela paginação padrão do backend.
+
+*   **[crew/crew.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/crew.py)**:
+    *   **Isolamento do Diretório de Banco**: Configurei a variável de ambiente `CREWAI_STORAGE_DIR` para `./db/crewai_storage` antes de instanciar a equipe. Isso isolou o banco de dados LanceDB em uma pasta local do projeto, resolvendo os travamentos e erros de concorrência causados pela tentativa de alterar a pasta padrão do sistema (`AppData/Local`), que estava bloqueada em tempo de execução pelos servidores uvicorn rodando no background.
+    *   **Configuração de Embedder Google**: Alterei o modelo de embeddings para `"gemini-embedding-001"`, que é plenamente suportado pela minha chave do Google AI Studio, solucionando erros de modelo não encontrado (`404 NOT_FOUND`) que aconteciam ao tentar carregar a string genérica `"text-multilingual-embedding-002"`.
+*   **[crew/tools.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/tools.py)**:
+    *   **Otimização de Limites da API**: Adicionei o parâmetro `?limit=100` nas requisições `GET` das ferramentas `listar_tasks` e `buscar_task_por_titulo`. Isso evitou o bug visual em que tarefas recém-criadas com IDs superiores a 13 eram ocultadas da visualização do agente devido ao limitador padrão (`limit=10`) configurado na rota da API REST.
+*   **Dependências**:
+    *   Instalei a biblioteca oficial `google-generativeai` para habilitar o motor nativo de geração de embeddings do Google integrado ao ChromaDB/LanceDB do CrewAI.
+
+---
+
+### 🧠 O que foi Aprendido / Conceitos Estudados
+
+1.  **Compatibilidade de Modelos de Embeddings do Google AI Studio**:
+    *   Compreendi que a lista de modelos de embeddings de uma chave gratuita do Gemini pode variar, sendo fundamental validar os nomes disponíveis programaticamente via `genai.list_models()`. O modelo estável correto do ecossistema AI Studio para buscas semânticas padrão é `models/gemini-embedding-001` (e o novo `models/gemini-embedding-2`), que fornecem representações de 3072 dimensões de alto desempenho.
+2.  **Locks de Banco e Ambientes Concorrentes com Servidores Locais**:
+    *   Aprendi que processos em execução persistente (como os recarregamentos de uvicorn em terminais de desenvolvimento) bloqueiam de forma exclusiva os diretórios locais de bancos de dados como o SQLite e o LanceDB. Configurar caminhos alternativos isolados (através de variáveis de escopo local como `CREWAI_STORAGE_DIR`) permite o desenvolvimento ágil em paralelo sem necessitar parar serviços ativos.
+3.  **Restrições Invisíveis de Paginação de API**:
+    *   Fixei a necessidade de verificar os contratos e limites de paginação das rotas consumidas. Em endpoints que retornam listas, limites padrão pequenos no backend podem dar a falsa impressão de que dados criados não foram gravados no banco de dados, sendo essencial que o cliente declare ativamente o limite desejado na requisição.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Executar testes adicionais de conversação sequencial no frontend web para garantir que o histórico de interações recupere informações contextuais direto do novo banco de memória semântica do Google.
+
+---
+
+## 🧠 Correção de Tool Calling e Validação no CrewAI com Groq (Llama 3) — 14/07/2026 15:25
+
+### 🛠️ O que eu Modifiquei
+
+Eu corrigi um erro crítico de execução no time CrewAI que impedia a utilização de memória com LLMs hospedados no Groq (como o Llama 3.3).
+
+*   **[crew/tasks.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/tasks.py)**:
+    *   **Estruturação de Output com Pydantic**: Criei o modelo Pydantic `IntencaoSchema` para validar a saída da primeira tarefa (`task_interpretar`).
+    *   **Configuração de output_json**: Adicionei o parâmetro `output_json=IntencaoSchema` na inicialização de `task_interpretar` e simplifiquei sua descrição para extrair os dados conforme o schema. Isso eliminou a necessidade de o modelo tentar inferir formatos de JSON textuais que causavam erros de validação de ferramentas no Groq.
+
+---
+
+### 🧠 O que foi Aprendido / Conceitos Estudados
+
+1.  **Compatibilidade de Tool Calling em Modelos Open-Source (Groq/Llama 3)**:
+    *   Compreendi que modelos open-source executados no Groq tendem a entrar em modo de "tool use" de forma agressiva quando qualquer ferramenta está presente na chamada (o que ocorre automaticamente quando habilitamos a memória do CrewAI, que injeta as ferramentas `search_memory` e `save_to_memory`).
+    *   Em modo de "tool use", requisições livres de texto para extrair JSON fazem com que o modelo tente formatar a saída como uma chamada de função (no padrão XML `<function=...>`), muitas vezes alucinando nomes de ferramentas inexistentes (como `interpretar_mensagem` ou `interpretar_intencao`) que não constam na lista original de ferramentas permitidas, gerando falhas no gateway do Groq.
+2.  **Uso de Pydantic para Saídas Estruturadas (output_json)**:
+    *   Aprendi a utilizar o parâmetro `output_json` do CrewAI com um modelo Pydantic (`BaseModel`) para impor uma estrutura rígida de retorno diretamente na API de completude. Isso informa ao orquestrador e à LLM exatamente como formatar o retorno estruturado, resolvendo de forma nativa e robusta conflitos causados pela presença indesejada de outras ferramentas.
+
+---
+
+### 🚀 Meus Próximos Passos
+*   Continuar testando a resiliência das conversas sequenciais com memória habilitada.
+*   Monitorar os limites de requisição TPM/RPM do Groq nos cenários do chat web.
 
 ---
 

@@ -1,126 +1,206 @@
-# TaskAgent V2 🤖🚀
+# TaskAgent V2 🤖
 
-Bem-vindo ao **TaskAgent V2**, um orquestrador inteligente de multiagentes desenvolvido em Python. 
-
-Este projeto foi desenhado para ir além de chatbots tradicionais. Utilizando **CrewAI** e **LangGraph**, o sistema coordena múltiplos LLMs especializados (Agentes) que colaboram entre si para entender intenções complexas em linguagem natural e executar operações reais (via chamadas HTTP) em uma API RESTful de gerenciamento de tarefas.
-
-O repositório reflete uma arquitetura moderna e pronta para produção, incluindo frontend *stateless* e integração segura de ferramentas (*tools*).
+> Assistente inteligente de tarefas com **dois motores de IA intercambiáveis**: uma arquitetura multiagente com **CrewAI** e um grafo de estado determinístico com **LangGraph** — permitindo explorar e comparar na prática as principais abordagens de orquestração de agentes do mercado.
 
 ---
 
-## 🎯 O que é o Projeto?
+## 📌 O que é o Projeto?
 
-O TaskAgent V2 é um **Assistente Inteligente de Tarefas** que permite aos usuários gerenciar suas atividades do dia a dia através de um chat fluido. 
+O **TaskAgent V2** é um chatbot em linguagem natural conectado a uma API REST de gerenciamento de tarefas. Em vez de formulários, o usuário conversa livremente — e o sistema interpreta a intenção, executa a operação real na API e devolve uma resposta amigável.
 
-Ao invés de pedir para o usuário preencher formulários, o sistema interpreta o que ele diz, decide qual ação tomar, executa a requisição real no banco de dados e retorna uma resposta amigável. Por trás das cortinas, um time inteiro de agentes de IA divide o trabalho.
+### Funcionalidades
 
-### Principais Funcionalidades
-* 💬 **Chatbot Natural**: Criação, atualização, listagem e deleção de tarefas conversando livremente.
-* 👥 **Orquestração Multiagentes (CrewAI)**: Uma equipe composta por um `Interpretador`, um `Executor` e um `Formatador` que raciocinam em cadeia (Cadeia de Pensamento).
-* 🛠️ **Ferramentas HTTP Reais (Tools)**: Os agentes não "alucinam" ou inventam respostas; eles executam métodos GET/POST/PUT/DELETE de verdade na API.
-* 🎨 **Painel Web Moderno**: Interface elegante (*Dark Mode*) construída puramente em HTML/CSS/JS e consumida através do FastAPI.
-
----
-
-## 🛠️ Tecnologias Usadas
-
-* **Backend / Orquestração**: Python 3, [FastAPI](https://fastapi.tiangolo.com/), [CrewAI](https://www.crewai.com/), Langchain
-* **LLM / Inferência**: [Groq API](https://groq.com/) (Modelo Llama-3.3-70b-versatile) para execução ultrarrápida.
-* **Cliente HTTP**: `httpx` para chamadas assíncronas de API.
-* **Gerenciamento de Pacotes**: `uv` (extremamente ágil e isolado).
-* **Frontend**: HTML5, CSS3, Vanilla JavaScript, Fetch API.
+| Funcionalidade | Descrição |
+|---|---|
+| 💬 Chat Natural | Crie, liste, atualize e delete tarefas conversando |
+| 🔀 Dois Motores | Alterne entre CrewAI e LangGraph via variável de ambiente |
+| 🛠️ Tools Reais | Os agentes fazem chamadas HTTP reais — sem alucinações |
+| 🧠 Memória Semântica | O CrewAI lembra de interações passadas via embeddings do Google |
+| 🎨 Interface Web | Frontend *Dark Mode* servido pelo próprio FastAPI |
 
 ---
 
-## 🏛️ Arquitetura do Sistema
+## ⚔️ Comparativo de Arquiteturas
 
-O ecossistema foi projetado dividindo responsabilidades entre interface, orquestrador e persistência.
+Este repositório mantém **duas implementações completas** do mesmo assistente, cada uma usando uma filosofia de orquestração diferente. Este é o principal valor técnico do projeto para estudo e portfólio.
+
+### Motor 1 — CrewAI (`crew/`) ⭐ Padrão Atual
+
+Modelo baseado em **papéis e colaboração**. Cada agente é uma "pessoa" com personalidade, objetivo e ferramentas próprias.
+
+```
+Usuário → Interpretador de Intenções → Executor de Tasks → Formatador de Respostas → Usuário
+```
+
+| Característica | Detalhe |
+|---|---|
+| **Framework** | [CrewAI](https://www.crewai.com/) |
+| **LLM** | Google Gemini (`gemini-3.1-flash-lite`) via API gratuita |
+| **Embeddings** | `gemini-embedding-001` para memória semântica (ChromaDB/LanceDB) |
+| **Memória** | ✅ Semântica nativa — lembra de sessões anteriores |
+| **Autonomia** | Alta — o Executor decide qual Tool usar baseado em contexto |
+| **Melhor para** | MVPs, assistentes pessoais, prototipagem rápida, NLU complexo |
+
+**Arquivos principais:**
+- [`crew/agents.py`](crew/agents.py) — Definição dos 3 agentes (Interpretador, Executor, Formatador)
+- [`crew/tasks.py`](crew/tasks.py) — Tarefas sequenciais com output Pydantic validado
+- [`crew/tools.py`](crew/tools.py) — Ferramentas HTTP que conectam o agente à API de tarefas
+- [`crew/crew.py`](crew/crew.py) — Montagem do time e configuração de memória semântica
+
+---
+
+### Motor 2 — LangGraph (`graph/`) 🗺️ Legado / Estudo
+
+Modelo baseado em **grafo de estado determinístico**. Você desenha exatamente quais caminhos o agente pode seguir — sem surpresas.
+
+```
+Usuário → [Interpretar] → {clareza?} → [Executar] → [Confirmar] → Usuário
+                                 ↘ [Clarificar] ↗
+```
+
+| Característica | Detalhe |
+|---|---|
+| **Framework** | [LangGraph](https://langchain-ai.github.io/langgraph/) |
+| **LLM** | Groq (`llama3-70b-8192`) — inferência ultrarrápida |
+| **Embeddings** | ❌ Sem memória semântica entre sessões |
+| **Memória** | Histórico manual em memória RAM (por sessão) |
+| **Autonomia** | Baixa — cada transição de nó é codificada explicitamente |
+| **Melhor para** | Produção crítica, auditoria, fluxos financeiros, observabilidade |
+
+**Arquivos principais:**
+- [`graph/state.py`](graph/state.py) — Estado global tipado (`TypedDict`) compartilhado entre os nós
+- [`graph/graph.py`](graph/graph.py) — Construção do grafo, nós, bordas e bordas condicionais
+- [`graph/nodes.py`](graph/nodes.py) — Implementação de cada nó (interpretar, clarificar, executar, confirmar)
+- [`agent.py`](agent.py) — Função de entrada `executar_agente()` que invoca o grafo compilado
+
+---
+
+## 🏛️ Arquitetura do Ecossistema
 
 ```mermaid
 graph TD
-    subgraph Cliente ["1. Interface do Usuário (Navegador)"]
+    subgraph Cliente ["1. Interface (Navegador)"]
         UI["static/index.html<br>(Chat Frontend)"]
     end
 
-    subgraph Orquestrador ["2. Servidor de Multiagentes (Porta 8001)"]
-        FastAPI["FastAPI App<br>(main.py)"]
-        Crew["Equipe CrewAI<br>(crew.py)"]
-        
-        A1(("🕵️ Interpretador"))
-        A2(("⚙️ Executor"))
-        A3(("✍️ Formatador"))
-        
-        FastAPI --> Crew
-        Crew --- A1 & A2 & A3
+    subgraph Orquestrador ["2. Servidor de IA (Porta 8001)"]
+        FastAPI["FastAPI · main.py<br>AGENT_ENGINE=crewai|langgraph"]
+
+        subgraph CrewAI ["Motor: CrewAI"]
+            A1(("🕵️ Interpretador"))
+            A2(("⚙️ Executor"))
+            A3(("✍️ Formatador"))
+            A1 --> A2 --> A3
+        end
+
+        subgraph LangGraph ["Motor: LangGraph"]
+            N1["interpretar"]
+            N2{"clareza?"}
+            N3["executar"]
+            N4["clarificar"]
+            N5["confirmar"]
+            N1 --> N2
+            N2 -- "sim" --> N3 --> N5
+            N2 -- "não" --> N4 --> N1
+        end
+
+        FastAPI --> CrewAI
+        FastAPI --> LangGraph
     end
 
     subgraph Persistencia ["3. API TaskManager (Porta 8000)"]
-        Backend["API REST FastAPI<br>(Gerencia Dados)"]
-        DB[(Banco SQLite)]
+        Backend["FastAPI REST API"]
+        DB[(SQLite)]
         Backend --> DB
     end
 
-    UI -- "POST /chat (Mensagem)" --> FastAPI
-    A2 -- "Executa Tools (Chamadas HTTP reais)" --> Backend
+    UI -- "POST /chat" --> FastAPI
+    A2 -- "HTTP Tools" --> Backend
+    N3 -- "httpx direto" --> Backend
 ```
-
-### Como o time funciona?
-1. O **Interpretador de Intenções** analisa a frase e extrai IDs, nomes e status.
-2. O **Executor de Tasks** recebe os dados e, usando suas `Tools` equipadas, aciona a rota certa da API na porta 8000.
-3. O **Formatador de Respostas** recebe os dados brutos de sucesso/erro e formata um texto agradável ao usuário final.
 
 ---
 
 ## 🚀 Como Rodar Localmente
 
-Siga o passo a passo abaixo para rodar o projeto inteiro no seu computador:
-
 ### Pré-requisitos
-* Python 3.10+
-* Gerenciador de pacotes `uv` (ou `pip` padrão).
-* Chave de API do **Groq** (Grátis).
 
-### 1. Configuração de Variáveis de Ambiente
-Crie um arquivo `.env` na raiz do projeto (como referenciado no `.env.example`) contendo sua chave:
-```env
-GROQ_API_KEY="gsk_sua_chave_de_api_aqui"
+- Python 3.10+
+- Gerenciador `uv` (recomendado) — ou `pip`
+- **Para CrewAI:** Chave gratuita do [Google AI Studio](https://aistudio.google.com/)
+- **Para LangGraph:** Chave gratuita do [Groq](https://groq.com/)
+
+### 1. Configurar Variáveis de Ambiente
+
+Copie o arquivo de exemplo e preencha suas chaves:
+
+```bash
+cp .env.example .env
 ```
 
-### 2. Instalando as Dependências
-Abra o terminal na pasta raiz do projeto e instale tudo via `uv`:
+```env
+# Motor padrão (troque para "langgraph" para usar o motor legado)
+AGENT_ENGINE=crewai
+
+# Chave do Google Gemini (necessária para CrewAI)
+GOOGLE_GEMINI_KEY="sua_chave_aqui"
+
+# Chave do Groq (necessária para LangGraph)
+GROQ_API_KEY="sua_chave_aqui"
+```
+
+### 2. Instalar Dependências
+
 ```bash
 uv sync
 ```
-*(Se não usar uv, pode rodar `pip install -r requirements.txt` ou instalar as bibliotecas `fastapi`, `uvicorn`, `crewai`, `langchain-groq`, `python-dotenv`, `httpx`)*
 
-### 3. Rodando o Ambiente
-Você precisará de **dois terminais**, pois simulamos um ecossistema com um backend externo e um servidor de IA.
+### 3. Iniciar os Servidores
 
-**Terminal 1 (A API de Tarefas - Porta 8000)**
-Entre na pasta da sua API de tarefas (TaskManager) e rode:
+Abra **dois terminais**:
+
+**Terminal 1 — API de Tarefas (porta 8000)**
 ```bash
-uv run uvicorn main:app --port 8000 --reload
+cd TaskManager
+uv run python -m uvicorn main:app --reload
 ```
 
-**Terminal 2 (O Agente de IA - Porta 8001)**
-Na raiz deste projeto (`TaskAgentV2`), levante a interface e o orquestrador:
+**Terminal 2 — Servidor de IA (porta 8001)**
 ```bash
 uv run uvicorn main:app --port 8001 --reload
 ```
 
-### 4. Acessando
-Abra o seu navegador e acesse: **`http://localhost:8001`**. 
-Você já pode mandar mensagens no chat como *"Olá, quais são as minhas tarefas?"* ou *"Crie uma task chamada Estudar Python"*.
+### 4. Acessar o Chat
 
-*(Dica: Se a interface parecer desatualizada, pressione `Ctrl+F5` para limpar o cache do navegador).*
+Abra: **[http://localhost:8001](http://localhost:8001)**
+
+Exemplos de mensagens:
+- *"Quais são minhas tarefas?"*
+- *"Crie uma tarefa chamada Estudar LangGraph"*
+- *"Marque a tarefa 5 como concluída"*
+- *"Delete a tarefa de ID 3"*
+
+> 💡 Para alternar o motor, mude `AGENT_ENGINE=langgraph` no `.env` e reinicie o servidor.
+
+---
+
+## 🛠️ Tecnologias
+
+| Camada | Tecnologia |
+|---|---|
+| Backend / API | Python 3, FastAPI, httpx |
+| Motor CrewAI | CrewAI, Google Gemini API, LanceDB |
+| Motor LangGraph | LangGraph, LangChain, Groq (Llama 3) |
+| Frontend | HTML5, CSS3, Vanilla JS, marked.js |
+| Gerenciamento | `uv` (ambiente e dependências) |
 
 ---
 
-## 📚 Documentação Adicional
+## 📚 Documentação de Estudo
 
-Acesse nossos guias detalhados de estudos:
-* 📓 **[Diário de Aprendizado (LEARNING_DIARY.md)](docs/LEARNING_DIARY.md)**: Histórico completo das escolhas arquiteturais, problemas enfrentados e conceitos estudados (como LangGraph, StateGraphs e CrewAI).
-* 📝 **[Arquitetura Detalhada (arquitetura.md)](docs/arquitetura.md)**: Mais detalhes sobre as implementações técnicas iniciais.
+- 📓 **[Diário de Aprendizado](docs/LEARNING_DIARY.md)** — Histórico completo de decisões arquiteturais, erros encontrados e conceitos aprendidos ao longo do desenvolvimento (LangGraph, StateGraphs, CrewAI, embeddings, rate limits, etc.)
+- 📝 **[Arquitetura Detalhada](docs/arquitetura.md)** — Diagramas técnicos das implementações
 
 ---
-Desenvolvido como projeto de consolidação de conceitos avançados de Orquestração de Agentes IA.
+
+*Desenvolvido como projeto de estudo avançado em Orquestração de Agentes de IA — comparando abordagens determinísticas (LangGraph) e autônomas (CrewAI) na prática.*
