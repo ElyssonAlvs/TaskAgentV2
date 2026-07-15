@@ -409,7 +409,7 @@ Eu resolvi o travamento ("loop") na interface web que ocorria quando o agente pr
 
 ### 🛠️ O que eu Modifiquei
 
-Nesta etapa (Aula 5), eu transformei o meu agente CLI em um serviço web completo com interface gráfica no navegador. As principais alterações foram:
+Nesta etapa, eu transformei o meu agente CLI em um serviço web completo com interface gráfica no navegador. As principais alterações foram:
 
 *   **[main.py](file:///C:/Users/elyss/Desktop/Projects/TaskAgentV2/main.py)**: Reestruturei completamente o ponto de entrada da aplicação, convertendo-o em um servidor FastAPI que expõe:
     *   `POST /chat`: Executa o agente e retorna o pensamento do agente, a resposta amigável e as tarefas extraídas.
