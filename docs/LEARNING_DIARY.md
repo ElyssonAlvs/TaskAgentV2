@@ -68,10 +68,6 @@ Eu reativei a memória semântica nativa do CrewAI (ChromaDB/LanceDB) utilizando
     *   Fixei a necessidade de verificar os contratos e limites de paginação das rotas consumidas. Em endpoints que retornam listas, limites padrão pequenos no backend podem dar a falsa impressão de que dados criados não foram gravados no banco de dados, sendo essencial que o cliente declare ativamente o limite desejado na requisição.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Executar testes adicionais de conversação sequencial no frontend web para garantir que o histórico de interações recupere informações contextuais direto do novo banco de memória semântica do Google.
-
 ---
 
 ## 🧠 Correção de Tool Calling e Validação no CrewAI com Groq (Llama 3) — 14/07/2026 15:25
@@ -95,11 +91,6 @@ Eu corrigi um erro crítico de execução no time CrewAI que impedia a utilizaç
     *   Aprendi a utilizar o parâmetro `output_json` do CrewAI com um modelo Pydantic (`BaseModel`) para impor uma estrutura rígida de retorno diretamente na API de completude. Isso informa ao orquestrador e à LLM exatamente como formatar o retorno estruturado, resolvendo de forma nativa e robusta conflitos causados pela presença indesejada de outras ferramentas.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Continuar testando a resiliência das conversas sequenciais com memória habilitada.
-*   Monitorar os limites de requisição TPM/RPM do Groq nos cenários do chat web.
-
 ---
 
 ## 🛡️ Resiliência contra Limites de Requisição (Groq Rate Limits) — 12/07/2026 18:28
@@ -125,10 +116,6 @@ Eu implementei mecanismos de resiliência e otimização de tokens para lidar co
     *   Estudei como delegar para o LiteLLM a tratativa do status 429 (Rate Limit Reached), permitindo que ele silenciosamente aguarde alguns segundos antes de reenviar a requisição à IA, melhorando a experiência do usuário final.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Monitorear o uso de tokens da API do Groq nos próximos testes e validar se os retries resolvem as instabilidades.
-
 ---
 
 ## 🎨 Renderização Premium de Tabelas Markdown no Frontend - 12/07/2026 18:05
@@ -155,10 +142,6 @@ Eu melhorei a visualização das tarefas retornadas pelo CrewAI. Antes elas apar
     *   Percebi que usar uma biblioteca dedicada como `marked.js` é infinitamente superior a criar substituições regex pontuais, pois ela lida nativamente com elementos complexos como tabelas (`<table>`, `<th>`, `<td>`), blocos de código e espaçamentos com total segurança.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Testar comandos compostos na interface com o novo renderizador ativo.
-
 ---
 
 ## 🎨 Correção de Formatação de Markdown e Quebra de Linhas no Frontend - 12/07/2026 18:00
@@ -181,10 +164,6 @@ Eu corrigi um problema de formatação na interface web em que as quebras de lin
     *   Entendi a importância de sanitizar entradas de texto de terceiros (como LLMs) antes de renderizá-las via `innerHTML`. Escapar os caracteres `<` e `>` e aplicar substituições controladas com expressões regulares é uma solução rápida e eficiente para suportar formatação básica sem comprometer a segurança.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Continuar refinando a experiência do usuário com o time CrewAI e validar a persistência dos estados.
-
 ---
 
 ## 🎨 Integração do CrewAI no Frontend e Documentação Completa — 11/07/2026 20:29
@@ -214,10 +193,6 @@ Eu finalizei a conexão do time CrewAI à interface web do usuário e estruturei
     *   Pratiquei a padronização e documentação de projetos. A presença de um arquivo de exemplo `.env.example`, organização correta de testes fora da raiz principal, e um README completo com diagramas reduzem a fricção no *onboarding* de desenvolvedores e validam o aspecto de "projeto finalizado" e maduro.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Deixar os servidores ativos (TaskManager e TaskAgentV2) nas portas 8000 e 8001 e realizar testes robustos através da interface visual final!
-
 ---
 
 ## 🤖 Resolução do ValidationError e Configuração da LLM Groq no CrewAI - 11/07/2026 20:02
@@ -239,10 +214,6 @@ Eu corrigi o erro de validação do Pydantic (`ValidationError`) que ocorria ao 
     *   Reforcei que, ao usar a classe `LLM` do CrewAI para se conectar ao Groq via LiteLLM, a especificação correta do modelo mantendo as preferências do usuário (`groq/llama-3.3-70b-versatile`) resolve o acoplamento do tipo do objeto sem alterar o modelo selecionado.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Prosseguir com os testes de execução de múltiplos agentes em paralelo ou sequencial no projeto.
-
 ---
 
 ## 🛠️ Equipando Agentes com Tools no CrewAI — 11/07/2026 19:53
@@ -274,10 +245,6 @@ Eu equipei o agente executor do CrewAI com ferramentas customizadas que realizam
     *   Evitei que os agentes falhassem garantindo que as chamadas usassem a rota correta `/v1/tasks/` do ecossistema e fizessem a tradução do payload do usuário (`titulo` -> `title`).
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Aguardar as ordens do usuário para rodar os testes em lote e analisar a cadeia de pensamentos do CrewAI chamando as ferramentas.
-
 ---
 
 ## 🛠️ Correção e Configuração dos LLMs no CrewAI - 11/07/2026 19:40
@@ -303,10 +270,6 @@ Eu corrigi os erros de validação e execução ao rodar a equipe multiagentes (
     *   Notei que parâmetros automáticos injetados por frameworks (como `cache_breakpoint` do Anthropic) podem causar erros fatais ao serem passados para provedores que ainda não os suportam (como Groq). A aplicação de monkey-patches dinâmicos é uma estratégia de contorno útil nesses casos de incompatibilidade de versão.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Testar interações mais complexas e fluxos de tarefas com a equipe CrewAI criada.
-
 ---
 
 ## 👥 Início da Integração com CrewAI (Multiagentes) — 11/07/2026 19:28
@@ -339,10 +302,6 @@ Eu iniciei a transição/estudo da orquestração de tarefas utilizando o framew
     *   Assimilei que, enquanto o LangGraph nos dá controle fino e imperativo sobre o fluxo usando lógica de grafos de decisão, o CrewAI fornece uma abstração declarativa baseada na personalidade de múltiplos agentes cooperando entre si.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Aguardar orientações para a execução de `test_crew.py` e ver o *verbose* dos agentes cooperando antes de ligá-los ao frontend web.
-
 ---
 
 ## 📖 Atualização da Documentação Técnica de Arquitetura — 11/07/2026 18:01
@@ -366,10 +325,6 @@ Eu atualizei a documentação técnica da arquitetura para torná-la mais visual
     *   Compreendi a importância de manter diagramas arquiteturais rigorosamente alinhados às mudanças de infraestrutura e fluxo do sistema (como a alteração da transição do nó `clarificar`), evitando desinformação para futuros desenvolvedores.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Continuar evoluindo o agente com novos testes de interações de tarefas no frontend.
-
 ---
 
 ## 🔍 Busca de Tarefas por ID e Ajustes de Tipo no Estado - 11/07/2026 17:58
@@ -400,10 +355,6 @@ Eu adicionei suporte para buscar tarefas específicas pelo ID (tanto no backend 
     *   Assimilei que, embora o LangGraph não restrinja os tipos em runtime, utilizar tipagens coerentes no `TypedDict` (como `Any` para dados polimórficos) ajuda no autocompletar e na clareza do código para manutenção.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Subir os servidores e testar a busca por ID digitando mensagens como "quais os detalhes da tarefa 5?" ou "me mostre a task 2".
-
 ---
 
 ## 🧹 Resolução do Problema de Cache e Ajustes no Feedback da API - 11/07/2026 17:40
@@ -429,10 +380,6 @@ Eu corrigi o problema em que os títulos das tarefas apareciam como `undefined` 
     *   Estudei como garantir que os logs e mensagens de *feedback* da interface reflitam a realidade de fluxos encurtados do agente (como no caso do nó `clarificar`), onde interações de pausa não utilizam a API externa.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Realizar uma recarga forçada no navegador (`Ctrl+F5`) com os servidores online e testar se a interface está mapeando perfeitamente as propriedades das tarefas da API.
-
 ---
 
 ## 🐛 Correção do Loop de Clarificação na Web (Stateless Request-Response) - 11/07/2026 17:28
@@ -456,10 +403,6 @@ Eu resolvi o travamento ("loop") na interface web que ocorria quando o agente pr
     *   Aprendi que o design de interações para web deve ser **stateless (sem estado ativo)**. A clarificação deve terminar a requisição atual devolvendo a dúvida ao frontend. A resposta do usuário virá em uma nova requisição, e o histórico acumulado na sessão servirá como o contexto para o LLM.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Subir os servidores e validar o fluxo completo de criação e clarificação via chat web.
-
 ---
 
 ## 🌐 Interface Web para o TaskAgent V2 - 11/07/2026 17:00
@@ -491,10 +434,6 @@ Nesta etapa (Aula 5), eu transformei o meu agente CLI em um serviço web complet
     *   Estudei como estruturar e renderizar dinamicamente componentes como tabelas de tarefas e badges de status contextuais com base no payload JSON retornado pela API do agente.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Iniciar e testar os servidores da API (TaskManager) e do Agente em paralelo para rodar o chat web integrado.
-
 ---
 
 ## 🐛 Correção da Integração com a API Externa do TaskManager - 11/07/2026 16:45
@@ -521,10 +460,6 @@ Eu corrigi diversos problemas de comunicação entre o agente e a API externa do
     *   Entendi a importância de validar o status code da resposta HTTP e a existência de conteúdo antes de invocar métodos como `.json()`, prevenindo exceções de decode em requisições de remoção ou atualizações que retornem corpo vazio.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Continuar testando a integração de novas ações e fluxos complexos de conversação no terminal.
-
 ---
 
 ## 🔌 Estruturação do Ecossistema e Integração do TaskManager - 11/07/2026 16:27
@@ -546,10 +481,6 @@ Nesta etapa, eu estruturei a integração da API de backend que servirá de supo
     *   Entendi a importância de usar regras adequadas de Git ignore ao aninhar repositórios de estudo, garantindo que o versionamento do projeto de IA não rastreie arquivos do microsserviço de tarefas, mantendo o histórico de commits do `TaskAgentV2` focado estritamente na lógica do agente.
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Substituir os mocks das chamadas HTTP no nó de execução (`executar_task`) em [graph/nodes.py](graph/nodes.py) por requisições HTTP reais usando `httpx` ou `requests`, conectando meu agente de forma integrada aos endpoints da API do `TaskManager`.
-
 ---
 
 ## 🤖 Integração com LLM (Groq) e Correção dos Nós do Grafo - 11/07/2026 12:46
@@ -574,10 +505,6 @@ Eu integrei um LLM real para interpretar as intenções do usuário e corrigi er
     *   Reconheci que, ao registrar nós como `add_node("clarificar", pedir_clarificacao)` no `StateGraph`, é impreterível que os callbacks correspondentes permaneçam implementados e expostos no módulo de nós. A remoção acidental de qualquer nó quebra as importações do arquivo de construção do grafo (`graph.py`).
 
 ---
-
-### 🚀 Meus Próximos Passos
-*   Substituir a lógica mockada do nó de execução (`executar_task`) por chamadas reais a uma API FastAPI.
-
 ---
 
 ## 📝 Setup Inicial e Estruturação do Fluxo com LangGraph - 11/07/2026 11:55

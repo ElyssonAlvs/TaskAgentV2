@@ -24,7 +24,6 @@ Esta skill permite documentar as evoluções do projeto, o aprendizado teórico 
    - **Data e Hora**: O timestamp da criação da entrada.
    - **O que foi Modificado**: Uma lista clara dos arquivos criados ou modificados, detalhando de forma pessoal a finalidade de cada alteração.
    - **O que foi Aprendido / Conceitos Estudados**: Explicações teóricas detalhadas dos conceitos de IA e Orquestração envolvidos (ex: State Graphs, Transições de Estado, Conditional Edges, Mocking de chamadas, Histórico de Diálogo, etc.).
-   - **Próximos Passos / Plano de Estudos**: O que está planejado para ser estudado ou implementado a seguir.
 
 4. **Persistência**:
    - Se o arquivo [LEARNING_DIARY.md](../../../docs/LEARNING_DIARY.md) não existir, crie-o com um cabeçalho principal formatado e visualmente elegante:
