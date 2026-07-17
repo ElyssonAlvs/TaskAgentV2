@@ -8,7 +8,7 @@ Neste documento, eu descrevo a arquitetura completa do **TaskAgent V2**, detalha
 
 Para expor o agente de forma amigável no navegador, eu estruturei o sistema em uma arquitetura de múltiplos servidores que se comunicam via HTTP. O fluxo geral consiste em um cliente (frontend), o servidor do agente (que roda o LangGraph) e o servidor de persistência (API TaskManager).
 
-Aqui está o diagrama que desenhei para representar essa comunicação:
+Aqui está o diagrama para representar essa comunicação:
 
 ```mermaid
 graph TD
