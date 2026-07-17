@@ -1,6 +1,6 @@
 # TaskAgent V2 🤖
 
-> **Bem-vindo(a) ao TaskAgent V2!** Se você não é programador ou nunca ouviu falar de "Orquestração de Agentes", não se preocupe. Este projeto foi desenhado para ser uma vitrine muito clara de como a Inteligência Artificial moderna pode deixar de ser apenas um "chatbot de texto" e passar a **agir no mundo real**.
+> **Bem-vindo(a) ao TaskAgent V2!** Se você nunca ouviu falar de "Orquestração de Agentes", não se preocupe. Este projeto foi desenhado para ser uma vitrine muito clara de como a Inteligência Artificial moderna pode deixar de ser apenas um "chatbot de texto" e passar a **agir no mundo real**.
 
 ---
 
@@ -12,7 +12,7 @@ O **TaskAgent V2** é um assistente virtual que entende o que você fala (como u
 
 ### O Que Torna Isso Especial? (Para Leigos)
 
-Os chatbots comuns (como o ChatGPT na web) apenas *conversam* com você, mas eles não conseguem clicar em botões nos seus aplicativos. O TaskAgent V2 tem **"braços" virtuais** (que na programação chamamos de *Tools* ou Ferramentas) que permitem que ele crie, edite e apague coisas de verdade em um banco de dados.
+Os chatbots comuns (como o ChatGPT na web) apenas *conversam* com você, mas eles não conseguem clicar em botões nos seus aplicativos. O TaskAgent V2 tem **"braços" virtuais** (*Tools* ou Ferramentas) que permitem que ele crie, edite e apague coisas de verdade em um banco de dados.
 
 | O que ele faz | Como ele te ajuda |
 |---|---|
@@ -28,7 +28,7 @@ Os chatbots comuns (como o ChatGPT na web) apenas *conversam* com você, mas ele
 
 O grande diferencial tecnológico deste projeto é que ele não usa apenas uma, mas **duas formas diferentes de pensar**. Nós mantemos ambas para que estudantes de tecnologia possam testar e comparar. Se você for instalar o projeto, pode alternar entre elas com um simples "interruptor" no código.
 
-### Motor 1: O Time de Especialistas (CrewAI) ⭐ Cérebro Padrão
+### Motor 1: O Time de Especialistas (CrewAI)
 
 Neste modelo, a Inteligência Artificial funciona como se fosse uma **equipe de funcionários em um escritório**.
 Temos três "funcionários" virtuais trabalhando juntos para responder à sua mensagem:
@@ -41,7 +41,7 @@ Temos três "funcionários" virtuais trabalhando juntos para responder à sua me
 
 ---
 
-### Motor 2: O Fluxograma Rigoroso (LangGraph) 🗺️ Cérebro de Estudo
+### Motor 2: O Fluxograma Rigoroso (LangGraph)
 
 Neste modelo, a Inteligência Artificial funciona como um **trabalhador seguindo um manual de instruções muito rigoroso (um fluxograma)**.
 Se ela não entender algo, o manual diz: *"pare e pergunte ao usuário"*. Ela não pode improvisar ou tentar "adivinhar", ela só anda pelos caminhos exatos que o programador desenhou.
@@ -90,7 +90,7 @@ graph TD
 
 ## 🚀 Como Instalar e Rodar no Seu Computador
 
-Se você quiser testar a "mágica" na prática (e tiver conhecimentos básicos de terminal), siga os passos abaixo.
+Se você quiser testar a "mágica" na prática, siga os passos abaixo.
 
 ### Pré-requisitos
 - **Python 3.10** ou superior instalado.
@@ -118,7 +118,7 @@ uv sync
 ```
 
 **3. Ligue as Máquinas!**
-Você precisará de **dois terminais (telas pretas)** abertos ao mesmo tempo, porque o nosso banco de dados e o nosso cérebro de IA rodam separados.
+Você precisará de **dois terminais** abertos ao mesmo tempo, porque o nosso banco de dados e o nosso cérebro de IA rodam separados.
 
 *Terminal 1 — Ligando o Banco de Dados:*
 ```bash
