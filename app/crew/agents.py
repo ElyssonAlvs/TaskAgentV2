@@ -6,7 +6,7 @@ except ImportError:
     pass
 
 from crewai import Agent, LLM
-from crew.tools import listar_tasks, criar_task, deletar_task, atualizar_task, buscar_task_por_titulo
+from app.crew.tools import listar_tasks, criar_task, deletar_task, atualizar_task, buscar_task_por_titulo
 from dotenv import load_dotenv
 import os
 

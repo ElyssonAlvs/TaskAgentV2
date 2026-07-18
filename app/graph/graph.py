@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, END
-from graph.state import TaskAgentState
-from graph.nodes import (
+from app.graph.state import TaskAgentState
+from app.graph.nodes import (
     interpretar_intencao,
     pedir_clarificacao,
     executar_task,

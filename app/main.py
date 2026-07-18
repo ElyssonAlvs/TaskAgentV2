@@ -29,7 +29,7 @@ def chat(request: MensagemRequest):
 
     if ENGINE == "langgraph":
         # ── Motor LangGraph ──────────────────────────────────────
-        from agent import executar_agente
+        from app.agent import executar_agente
         resultado = {}
         try:
             resultado = executar_agente(request.mensagem, historico_sessao)
@@ -50,7 +50,7 @@ def chat(request: MensagemRequest):
 
     else:
         # ── Motor CrewAI (padrão) ────────────────────────────────
-        from crew.crew import executar_crew
+        from app.crew.crew import executar_crew
         try:
             resposta_final = str(executar_crew(request.mensagem, historico_sessao))
         except Exception as e:

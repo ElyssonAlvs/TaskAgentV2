@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, Annotated
 from pydantic import BaseModel, Field, BeforeValidator
 from crewai import Task
-from crew.agents import interpretador, executor, formatador
+from app.crew.agents import interpretador, executor, formatador
 
 def coerce_bool(v: Any) -> bool:
     if isinstance(v, str):

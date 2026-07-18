@@ -128,7 +128,7 @@ uv run python -m uvicorn main:app --reload
 
 *Terminal 2 — Ligando o Cérebro de IA:*
 ```bash
-uv run uvicorn main:app --port 8001 --reload
+uv run uvicorn app.main:app --port 8001 --reload
 ```
 
 **4. Comece a Conversar!**

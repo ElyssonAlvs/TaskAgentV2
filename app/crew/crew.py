@@ -1,6 +1,6 @@
 from crewai import Crew, Process
-from crew.agents import interpretador, executor, formatador
-from crew.tasks import criar_tasks
+from app.crew.agents import interpretador, executor, formatador
+from app.crew.tasks import criar_tasks
 import os
 
 def executar_crew(mensagem: str, historico: list[str]) -> str:

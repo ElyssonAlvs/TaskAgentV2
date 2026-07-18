@@ -4,6 +4,34 @@
 
 ---
 
+## 🛡️ Tratamento de Erros Amigáveis na API e Resiliência HTTP — 17/07/2026 17:48
+
+### 🛠️ O que eu Modifiquei
+
+Implementei um tratamento robusto e amigável para erros de comunicação com a API (como erros 404 de recurso não encontrado, 422 de validação de dados e falhas de conexão) em ambos os motores de execução do TaskAgent.
+
+*   **[crew/tools.py](file:///c:/Users/elyss/Desktop/Projects/TaskAgentV2/crew/tools.py)**:
+    *   Substituí os blocos genéricos de captura de exceções nas ferramentas (`listar_tasks`, `criar_task`, `deletar_task`, `atualizar_task`, `buscar_task_por_titulo`).
+    *   Adicionei a captura explícita de `httpx.HTTPStatusError`, fornecendo mensagens de erro traduzidas, polidas e amigáveis em português de acordo com o código de status HTTP (como 404 e 422).
+    *   Melhorei a tratativa de `httpx.ConnectError` para alertar o usuário caso a API do `TaskManager` não esteja ativa em tempo de execução.
+    *   Adicionei um tratamento genérico `except Exception` para garantir resiliência e evitar que falhas inesperadas interrompam a execução do fluxo CrewAI.
+*   **[graph/nodes.py](file:///c:/Users/elyss/Desktop/Projects/TaskAgentV2/graph/nodes.py)**:
+    *   Refatorei o nó `executar_task` (motor LangGraph) para capturar e traduzir erros HTTP e de conexão.
+    *   Em vez de retornar erros técnicos crus (como `"Erro da API: 404"`), passei a injetar mensagens de erro contextualizadas no estado do grafo (como `"A tarefa ou o recurso solicitado não foi encontrado no servidor (Erro 404)."`).
+    *   Adicionei tratamento genérico no bloco final do nó para aumentar a resiliência contra outras exceções inesperadas.
+
+### 🧠 O que foi Aprendido / Conceitos Estudados
+
+1.  **Tratamento Amigável de Exceções HTTP em Agentes**:
+    *   Compreendi que os agentes de IA não devem expor detalhes técnicos crus do protocolo HTTP (como stack traces, URIs completas e nomes internos de exceções) para o usuário final. Exibir termos técnicos como `"Client error '404 Not Found'"` degrada a experiência do usuário.
+    *   O ideal é mapear as exceções conhecidas (`HTTPStatusError` do `httpx` ou `HTTPError` de bibliotecas de requisição) e convertê-las em mensagens orientadas a negócios no idioma de uso do chatbot.
+2.  **Resiliência Multi-Motor**:
+    *   Fixei que ao manter múltiplos motores de execução (CrewAI e LangGraph), os cuidados de tratamento de erro devem ser replicados de forma consistente em ambos os núcleos para que a experiência do usuário permaneça uniforme, independentemente de qual orquestrador esteja ativo.
+3.  **Segurança de Runtime em Ferramentas (Tool Safety)**:
+    *   Aprendi que exceções não tratadas dentro de ferramentas customizadas do CrewAI podem quebrar a execução completa da cadeia de agentes, caindo no tratamento global do servidor. Capturar todas as exceções e retornar strings descritivas de erro permite que o agente Formatador do CrewAI interprete a falha e responda adequadamente ao usuário de forma transparente.
+
+---
+
 ## 📦 Organização de Versionamento e Commits Semânticos — 15/07/2026 19:35
 
 ### 🛠️ O que eu Modifiquei

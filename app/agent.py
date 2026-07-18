@@ -1,4 +1,4 @@
-from graph.graph import construir_grafo
+from app.graph.graph import construir_grafo
 
 grafo = construir_grafo()
 

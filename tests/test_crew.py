@@ -7,7 +7,7 @@ if sys.platform.startswith('win'):
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from crew.crew import executar_crew
+from app.crew.crew import executar_crew
 
 sessao = sys.argv[1] if len(sys.argv) > 1 else "1"
 

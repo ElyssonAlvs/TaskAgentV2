@@ -1,4 +1,4 @@
-from graph.state import TaskAgentState
+from app.graph.state import TaskAgentState
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import json
@@ -195,11 +195,21 @@ def executar_task(state: TaskAgentState) -> dict:
 
     except httpx.HTTPStatusError as e:
         print(f"[Executar] Erro HTTP: {e.response.status_code}")
-        return {"resposta_api": {"erro": f"Erro da API: {e.response.status_code}"}}
+        if e.response.status_code == 404:
+            mensagem_erro = "A tarefa ou o recurso solicitado não foi encontrado no servidor (Erro 404)."
+        elif e.response.status_code == 422:
+            mensagem_erro = "Os dados enviados para a tarefa são inválidos (Erro 422)."
+        else:
+            mensagem_erro = f"Não foi possível processar a requisição no servidor da API (Código {e.response.status_code})."
+        return {"resposta_api": {"erro": mensagem_erro}}
 
     except httpx.ConnectError:
         print("[Executar] API não está rodando")
-        return {"resposta_api": {"erro": "Não consegui conectar à API. Ela está rodando?"}}
+        return {"resposta_api": {"erro": "Não foi possível conectar ao servidor. Por favor, verifique se a API do TaskManager está ativa."}}
+
+    except Exception as e:
+        print(f"[Executar] Erro inesperado: {e}")
+        return {"resposta_api": {"erro": "Ocorreu um erro inesperado ao executar a ação na API."}}
 
 
 # Nó 4: formata a resposta final para o usuário
